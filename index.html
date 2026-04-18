@@ -256,16 +256,17 @@ function CartFAB(p){
 function Onboarding(p){
   var _=useState(0),step=_[0],setStep=_[1];
   var slides=[
-    {e:'🍽️',bg:'#EBF3EE',t:'Bienvenido a Cravi',d:'Descubre los mejores restaurantes y pide tu comida favorita en minutos.'},
+    {e:'logo.png',bg:'#FFF2EE',t:'',d:'Descubre los mejores restaurantes y pide tu comida favorita en minutos.'},
     {e:'⚡',bg:'#FFFDE7',t:'Pide en segundos',d:'Explora el menú, arma tu orden y confírmala con solo unos toques. Sin complicaciones.'},
     {e:'📍',bg:'#E8F5E9',t:'Sigue tu pedido',d:'Sabe en qué etapa está tu pedido en todo momento hasta que llega a tus manos.'},
   ];
   var sl=slides[step];
   return h('div',{style:{minHeight:'100vh',display:'flex',flexDirection:'column',background:'#FFFBF8'}},
     h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 32px 0',textAlign:'center'}},
-      h('div',{key:step+'e',className:'si',style:{width:172,height:172,borderRadius:'50%',background:sl.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:76,marginBottom:32}},sl.e),
-      h('img',{key:step+'logo',src:'logo.png',alt:'Cravi',style:{height:24,marginBottom:12,objectFit:'contain'}}),
-      h('h1',{key:step+'t',className:'fu',style:{fontSize:24,fontWeight:800,lineHeight:1.25,marginBottom:12}},sl.t),
+      h('div',{key:step+'e',className:'si',style:{width:172,height:172,borderRadius:'50%',background:sl.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:76,marginBottom:32}},
+        sl.e.endsWith('.png') ? h('img',{src:sl.e,style:{height:48,width:'auto'}}) : sl.e
+      ),
+      sl.t && h('h1',{key:step+'t',className:'fu',style:{fontSize:24,fontWeight:800,lineHeight:1.25,marginBottom:12}},sl.t),
       h('p',{key:step+'d',className:'fu',style:{fontSize:15,color:'#6B5F58',lineHeight:1.65,maxWidth:280}},sl.d)
     ),
     h('div',{style:{display:'flex',justifyContent:'center',gap:8,padding:'28px 0 0'}},
