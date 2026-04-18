@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cravi — Registra tu negocio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#FF4103;--pl:#FFF2EE;--pd:#CC3302;--p2:#FF6B2B;
+  --bg:#FFFBF8;--sf:#fff;--bd:#EDE8E3;
+  --t:#001621;--t2:#6B5F58;--t3:#A89890;
+  --gr:#22A861;--grl:#E8F5E9;
+  --r:14px;--r-sm:10px;
+  --shadow:0 2px 12px rgba(28,20,18,.08);
+  --shadow-lg:0 8px 32px rgba(28,20,18,.12);
+}
+html,body{min-height:100%;background:var(--bg);font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--t);-webkit-font-smoothing:antialiased;font-size:15px}
+
+/* ── LAYOUT ── */
+.page{min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--sf);border-bottom:1px solid var(--bd);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.logo{font-size:22px;font-weight:800;color:var(--p);letter-spacing:-.5px}
+.logo span{color:var(--t)}
+.topbar-sub{font-size:13px;color:var(--t3)}
+.main{flex:1;display:flex;flex-direction:column;align-items:center;padding:32px 20px 64px}
+.form-shell{width:100%;max-width:620px}
+
+/* ── PROGRESS ── */
+.progress-wrap{margin-bottom:36px}
+.progress-steps{display:flex;align-items:center;gap:0;margin-bottom:10px}
+.ps{display:flex;align-items:center;flex:1}
+.ps-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;transition:all .3s;border:2px solid var(--bd);background:var(--sf);color:var(--t3)}
+.ps-dot.done{background:var(--gr);border-color:var(--gr);color:#fff}
+.ps-dot.active{background:var(--p);border-color:var(--p);color:#fff;box-shadow:0 0 0 4px rgba(255,65,3,.18)}
+.ps-line{flex:1;height:2px;background:var(--bd);transition:background .3s}
+.ps-line.done{background:var(--gr)}
+.ps-labels{display:flex;justify-content:space-between;padding:0 4px}
+.ps-lbl{font-size:11px;color:var(--t3);font-weight:500;text-align:center;flex:1;transition:color .3s}
+.ps-lbl.active{color:var(--p);font-weight:700}
+.ps-lbl.done{color:var(--gr);font-weight:600}
+.progress-bar-track{height:4px;background:var(--bd);border-radius:4px;margin-top:4px;overflow:hidden}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--p2));border-radius:4px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+
+/* ── STEP HEADER ── */
+.step-header{margin-bottom:28px;text-align:center}
+.step-eyebrow{font-size:12px;font-weight:700;color:var(--p);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.step-title{font-size:24px;font-weight:800;color:var(--t);line-height:1.2;margin-bottom:8px}
+.step-desc{font-size:14px;color:var(--t2);line-height:1.6;max-width:480px;margin:0 auto}
+
+/* ── CARDS ── */
+.card{background:var(--sf);border-radius:var(--r);border:1px solid var(--bd);padding:24px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:700;color:var(--t);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title .ct-icon{font-size:16px}
+
+/* ── FORM ELEMENTS ── */
+.field{margin-bottom:18px}
+.field:last-child{margin-bottom:0}
+.field-row{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+@media(max-width:520px){.field-row{grid-template-columns:1fr}}
+label{display:block;font-size:13px;font-weight:600;color:var(--t2);margin-bottom:6px}
+label .req{color:var(--p);margin-left:2px}
+.inp{width:100%;padding:12px 14px;border:1.5px solid var(--bd);border-radius:var(--r-sm);font-family:inherit;font-size:14px;background:var(--sf);color:var(--t);outline:none;transition:border-color .15s,box-shadow .15s}
+.inp:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(255,65,3,.1)}
+.inp::placeholder{color:var(--t3)}
+.inp.error{border-color:#E53935}
+textarea.inp{resize:vertical;min-height:80px}
+select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A89890' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.input-hint{font-size:12px;color:var(--t3);margin-top:5px}
+.input-error{font-size:12px;color:#E53935;margin-top:5px;display:none}
+.field.has-error .input-error{display:block}
+.field.has-error .inp{border-color:#E53935}
+.pass-wrap{position:relative}
+.pass-wrap .inp{padding-right:44px}
+.pass-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--t3);display:flex;padding:4px}
+.char-count{font-size:11px;color:var(--t3);text-align:right;margin-top:4px}
+
+/* ── PLAN CARDS ── */
+.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px}
+@media(max-width:480px){.plan-grid{grid-template-columns:1fr}}
+.plan-card{border:2px solid var(--bd);border-radius:var(--r);padding:20px;cursor:pointer;transition:all .2s;position:relative;background:var(--sf)}
+.plan-card:hover{border-color:var(--p);box-shadow:var(--shadow)}
+.plan-card.selected{border-color:var(--p);background:var(--pl)}
+.plan-card.selected .plan-price{color:var(--p)}
+.plan-card.popular::before{content:'Recomendado';position:absolute;top:-1px;right:16px;background:var(--p);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:0 0 8px 8px}
+.plan-radio{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.plan-radio input[type=radio]{accent-color:var(--p);width:16px;height:16px;flex-shrink:0}
+.plan-name{font-size:16px;font-weight:800}
+.plan-price{font-size:28px;font-weight:800;color:var(--t);line-height:1;margin-bottom:4px}
+.plan-price span{font-size:14px;font-weight:500;color:var(--t2)}
+.plan-features{list-style:none;margin-top:14px;display:flex;flex-direction:column;gap:7px}
+.plan-features li{font-size:13px;color:var(--t2);display:flex;align-items:flex-start;gap:7px;line-height:1.4}
+.plan-features li::before{content:'';width:16px;height:16px;border-radius:50%;background:var(--grl);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.plan-features li.yes::before{content:'✓';background:var(--gr);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.plan-features li.no::before{content:'–';background:#F0EBE7;color:var(--t3);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.plan-features li.no{color:var(--t3)}
+
+/* ── CATEGORY GRID ── */
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:480px){.cat-grid{grid-template-columns:repeat(3,1fr)}}
+.cat-item{border:1.5px solid var(--bd);border-radius:var(--r-sm);padding:12px 8px;cursor:pointer;text-align:center;transition:all .15s;background:var(--sf)}
+.cat-item:hover{border-color:var(--p);background:var(--pl)}
+.cat-item.selected{border-color:var(--p);background:var(--pl)}
+.cat-item input{display:none}
+.cat-emoji{font-size:28px;display:block;margin-bottom:5px}
+.cat-label{font-size:12px;font-weight:600;color:var(--t2)}
+.cat-item.selected .cat-label{color:var(--p)}
+
+/* ── FILE UPLOAD ── */
+.upload-zone{border:2px dashed var(--bd);border-radius:var(--r);padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--bg)}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--p);background:var(--pl)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:36px;margin-bottom:10px}
+.upload-label{font-size:14px;font-weight:600;color:var(--t);margin-bottom:4px}
+.upload-sub{font-size:12px;color:var(--t3)}
+.upload-preview{position:relative;border-radius:var(--r-sm);overflow:hidden;border:1.5px solid var(--bd)}
+.upload-preview img{width:100%;display:block;object-fit:cover}
+.preview-logo{height:120px}
+.preview-logo img{height:120px;object-fit:contain;background:#f9f5f2}
+.preview-banner{height:140px}
+.preview-banner img{height:140px}
+.upload-preview .remove-btn{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.55);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;backdrop-filter:blur(4px)}
+.upload-grid{display:grid;grid-template-columns:1fr 2fr;gap:16px}
+@media(max-width:520px){.upload-grid{grid-template-columns:1fr}}
+
+/* ── COLOR PICKER ── */
+.color-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.color-swatch{width:36px;height:36px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0}
+.color-swatch.selected{border-color:var(--t);transform:scale(1.15)}
+.color-custom{display:flex;align-items:center;gap:8px;margin-top:8px}
+.color-custom input[type=color]{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--bd);cursor:pointer;padding:2px;background:none}
+
+/* ── HOURS ── */
+.hours-table{width:100%;border-collapse:collapse}
+.hours-row{display:grid;grid-template-columns:100px 1fr 1fr 80px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd)}
+.hours-row:last-child{border-bottom:none}
+.hours-row.closed .time-inp{opacity:.4;pointer-events:none}
+.day-name{font-size:14px;font-weight:600;color:var(--t)}
+.time-inp{padding:9px 12px;border:1.5px solid var(--bd);border-radius:8px;font-family:inherit;font-size:13px;color:var(--t);outline:none;width:100%;transition:border-color .15s}
+.time-inp:focus{border-color:var(--p)}
+.toggle-wrap{display:flex;align-items:center;gap:8px}
+.toggle{appearance:none;width:40px;height:22px;border-radius:11px;background:var(--bd);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle:checked{background:var(--gr)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle:checked::after{transform:translateX(18px)}
+.toggle-label{font-size:12px;font-weight:600;color:var(--t3)}
+.toggle:checked+.toggle-label{color:var(--gr)}
+.copy-hours-btn{font-size:12px;color:var(--p);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;padding:4px 8px;border-radius:6px}
+.copy-hours-btn:hover{background:var(--pl)}
+@media(max-width:520px){
+  .hours-row{grid-template-columns:1fr 1fr;row-gap:8px}
+  .day-name{grid-column:1/2}
+  .toggle-wrap{grid-column:2/3;justify-content:flex-end}
+}
+
+/* ── REVIEW ── */
+.review-section{margin-bottom:20px}
+.review-section h4{font-size:13px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+.review-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;font-size:14px;gap:16px}
+.review-key{color:var(--t2);flex-shrink:0}
+.review-val{font-weight:600;color:var(--t);text-align:right;word-break:break-word}
+.review-banner{width:100%;height:100px;border-radius:var(--r-sm);object-fit:cover;margin-bottom:8px;border:1px solid var(--bd)}
+.review-logo{width:64px;height:64px;border-radius:var(--r-sm);object-fit:contain;border:1px solid var(--bd);background:#f9f5f2}
+.brand-preview{border-radius:var(--r);overflow:hidden;margin-bottom:16px;border:1px solid var(--bd)}
+.brand-banner{height:80px;display:flex;align-items:center;justify-content:center;font-size:48px;position:relative}
+.brand-info{padding:12px 16px;background:var(--sf)}
+.brand-info-name{font-size:16px;font-weight:800}
+.brand-info-cat{font-size:12px;color:var(--t3);margin-top:2px}
+
+/* ── BUTTONS ── */
+.btn-row{display:flex;gap:12px;margin-top:28px}
+.btn{border:none;border-radius:100px;padding:14px 28px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px;flex:1;justify-content:center}
+.btn-primary{background:var(--p);color:#fff}
+.btn-primary:hover{background:var(--pd)}
+.btn-primary:active{transform:scale(.98)}
+.btn-secondary{background:var(--sf);color:var(--t2);border:1.5px solid var(--bd);flex:0 0 auto;padding:14px 20px}
+.btn-secondary:hover{border-color:var(--t2);color:var(--t)}
+.btn-ghost{background:none;color:var(--t3);border:none;font-size:14px;flex:0 0 auto;padding:14px 16px}
+.btn-success{background:#22A861;color:#fff}
+.btn-success:hover{background:#1a9152}
+
+/* ── SUCCESS ── */
+.success-screen{text-align:center;padding:40px 20px;max-width:480px;margin:0 auto}
+.success-icon{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#FF9A3C,#FF4103);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 24px}
+.success-title{font-size:28px;font-weight:800;margin-bottom:12px}
+.success-desc{font-size:15px;color:var(--t2);line-height:1.65;margin-bottom:32px}
+.success-steps{text-align:left;background:var(--sf);border-radius:var(--r);border:1px solid var(--bd);padding:20px;margin-bottom:28px}
+.success-step{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--bd);align-items:flex-start}
+.success-step:last-child{border-bottom:none}
+.ss-num{width:28px;height:28px;border-radius:50%;background:var(--pl);color:var(--p);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ss-text{font-size:14px;color:var(--t2);line-height:1.5}
+.ss-text strong{color:var(--t)}
+
+/* ── UTILS ── */
+.mt-4{margin-top:4px}
+.mt-8{margin-top:8px}
+.mt-16{margin-top:16px}
+.flex-center{display:flex;align-items:center;gap:8px}
+.badge-plan{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:12px;font-weight:700}
+.badge-basic{background:#FFF2EE;color:#FF4103}
+.badge-plus{background:#E8F5E9;color:#22A861}
+.sep{height:1px;background:var(--bd);margin:20px 0}
+.tag{display:inline-block;background:var(--pl);color:var(--p);border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;margin:2px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .3s ease both}
+@keyframes checkPop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.check-pop{animation:checkPop .4s cubic-bezier(.34,1.56,.64,1) both}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <img src="logo.png" alt="Cravi" class="logo" style="height: 32px; width: auto; border: none;">
+    <div class="topbar-sub" id="topbar-step-label">Paso 1 de 6</div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="form-shell">
+
+      <!-- PROGRESS -->
+      <div class="progress-wrap fade-up">
+        <div class="progress-steps" id="progress-steps"></div>
+        <div class="ps-labels" id="ps-labels"></div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill" style="width:16.66%"></div></div>
+      </div>
+
+      <!-- STEPS CONTAINER -->
+      <div id="steps-container"></div>
+
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script>
+'use strict';
+var h=htm.bind(React.createElement);
+var useState=React.useState,useEffect=React.useEffect,useRef=React.useRef;
+
+/* ── CONSTANTS ── */
+var STEPS=[
+  {id:'plan',label:'Plan'},
+  {id:'owner',label:'Propietario'},
+  {id:'business',label:'Negocio'},
+  {id:'branding',label:'Imagen'},
+  {id:'hours',label:'Horarios'},
+  {id:'review',label:'Resumen'},
+];
+var CATS=[
+  {id:'tacos',label:'Tacos',emoji:'🌮'},
+  {id:'pizza',label:'Pizza',emoji:'🍕'},
+  {id:'burgers',label:'Burgers',emoji:'🍔'},
+  {id:'sushi',label:'Sushi',emoji:'🍣'},
+  {id:'ramen',label:'Ramen',emoji:'🍜'},
+  {id:'mariscos',label:'Mariscos',emoji:'🦐'},
+  {id:'antojitos',label:'Antojitos',emoji:'🫔'},
+  {id:'postres',label:'Postres',emoji:'🍰'},
+  {id:'cafeteria',label:'Cafetería',emoji:'☕'},
+  {id:'pollos',label:'Pollos',emoji:'🍗'},
+  {id:'ensaladas',label:'Ensaladas',emoji:'🥗'},
+  {id:'otros',label:'Otros',emoji:'🍽️'},
+];
+var DAYS=[
+  {id:'lun',label:'Lunes'},
+  {id:'mar',label:'Martes'},
+  {id:'mie',label:'Miércoles'},
+  {id:'jue',label:'Jueves'},
+  {id:'vie',label:'Viernes'},
+  {id:'sab',label:'Sábado'},
+  {id:'dom',label:'Domingo'},
+];
+var COLORS=['#FF4103','#FF6B35','#3B82F6','#22A861','#8B5CF6','#F59E0B','#EC4899','#14B8A6','#64748B','#001621'];
+var defaultHours=function(){
+  var h={};
+  DAYS.forEach(function(d){h[d.id]={open:d.id!=='dom',from:'09:00',to:'21:00'};});
+  return h;
+};
+
+/* ── PROGRESS COMPONENT ── */
+function Progress(p){
+  var cur=p.current;
+  useEffect(function(){
+    var pct=((cur+1)/STEPS.length*100).toFixed(1);
+    var fill=document.getElementById('progress-fill');
+    if(fill)fill.style.width=pct+'%';
+    var lbl=document.getElementById('topbar-step-label');
+    if(lbl)lbl.textContent='Paso '+(cur+1)+' de '+STEPS.length;
+    // dots
+    var stepsEl=document.getElementById('progress-steps');
+    var labelsEl=document.getElementById('ps-labels');
+    if(stepsEl){
+      stepsEl.innerHTML='';
+      STEPS.forEach(function(s,i){
+        if(i>0){
+          var ln=document.createElement('div');
+          ln.className='ps-line'+(i<=cur?' done':'');
+          stepsEl.appendChild(ln);
+        }
+        var ps=document.createElement('div');
+        ps.className='ps';
+        var dot=document.createElement('div');
+        dot.className='ps-dot'+(i<cur?' done':i===cur?' active':'');
+        dot.textContent=i<cur?'✓':(i+1);
+        ps.appendChild(dot);
+        stepsEl.appendChild(ps);
+      });
+    }
+    if(labelsEl){
+      labelsEl.innerHTML='';
+      STEPS.forEach(function(s,i){
+        var lbl=document.createElement('div');
+        lbl.className='ps-lbl'+(i<cur?' done':i===cur?' active':'');
+        lbl.textContent=s.label;
+        labelsEl.appendChild(lbl);
+      });
+    }
+  },[cur]);
+  return null;
+}
+
+/* ── STEP 1: PLAN ── */
+function StepPlan(p){
+  var plan=p.data.plan||'plus';
+  function sel(v){p.setData(function(d){return Object.assign({},d,{plan:v})});}
+  return h('div',{className:'fade-up'},
+    h('div',{className:'step-header'},
+      h('div',{className:'step-eyebrow'},'Paso 1 de 6'),
+      h('h2',{className:'step-title'},'Elige tu plan'),
+      h('p',{className:'step-desc'},'Puedes cambiar de plan en cualquier momento desde tu panel de administración.')
+    ),
+    h('div',{className:'plan-grid'},
+      h('div',{className:'plan-card'+(plan==='basic'?' selected':''),onClick:function(){sel('basic')}},
+        h('div',{className:'plan-radio'},
+          h('input',{type:'radio',name:'plan',checked:plan==='basic',onChange:function(){sel('basic')}}),
+          h('span',{className:'plan-name'},'Básico')
+        ),
+        h('div',{className:'plan-price'},'$299 ',h('span',null,'MXN/mes')),
+        h('ul',{className:'plan-features'},
+          h('li',{className:'yes'},'Perfil en la app Cravi'),
+          h('li',{className:'yes'},'Gestión de productos y precios'),
+          h('li',{className:'yes'},'Gestión de categorías'),
+          h('li',{className:'yes'},'Pedidos por WhatsApp'),
+          h('li',{className:'no'},'Panel de pedidos en tiempo real'),
+          h('li',{className:'no'},'Seguimiento de estados'),
+          h('li',{className:'no'},'Estadísticas y reportes')
+        )
+      ),
+      h('div',{className:'plan-card popular'+(plan==='plus'?' selected':''),onClick:function(){sel('plus')}},
+        h('div',{className:'plan-radio'},
+          h('input',{type:'radio',name:'plan',checked:plan==='plus',onChange:function(){sel('plus')}}),
+          h('span',{className:'plan-name'},'Plus')
+        ),
+        h('div',{className:'plan-price'},'$699 ',h('span',null,'MXN/mes')),
+        h('ul',{className:'plan-features'},
+          h('li',{className:'yes'},'Todo lo del plan Básico'),
+          h('li',{className:'yes'},'Panel de pedidos en tiempo real'),
+          h('li',{className:'yes'},'Estados del pedido al cliente'),
+          h('li',{className:'yes'},'Notificaciones push'),
+          h('li',{className:'yes'},'Estadísticas y dashboards'),
+          h('li',{className:'yes'},'Reportes CSV y PDF'),
+          h('li',{className:'yes'},'Soporte prioritario')
+        )
+      )
+    ),
+    h('div',{style:{fontSize:13,color:'var(--t3)',textAlign:'center',marginTop:8}},'⚡ Primer mes gratis en cualquier plan'),
+    BtnRow(p,function(){return true;})
+  );
+}
+
+/* ── STEP 2: OWNER ── */
+function StepOwner(p){
+  var d=p.data;
+  var[err,setErr]=useState({});
+  function upd(k,v){p.setData(function(x){return Object.assign({},x,{[k]:v})});}
+  function validate(){
+    var e={};
+    if(!(d.ownerName||'').trim())e.ownerName='El nombre es requerido';
+    if(!(d.ownerEmail||'').match(/^[^@]+@[^@]+\.[^@]+$/))e.ownerEmail='Email inválido';
+    if(!(d.ownerPhone||'').trim()||d.ownerPhone.replace(/\D/g,'').length<10)e.ownerPhone='Teléfono de 10 dígitos';
+    if(!(d.ownerPassword||'').trim()||d.ownerPassword.length<8)e.ownerPassword='Mínimo 8 caracteres';
+    setErr(e);
+    return Object.keys(e).length===0;
+  }
+  var[showPass,setShowPass]=useState(false);
+  return h('div',{className:'fade-up'},
+    h('div',{className:'step-header'},
+      h('div',{className:'step-eyebrow'},'Paso 2 de 6'),
+      h('h2',{className:'step-title'},'Datos del propietario'),
+      h('p',{className:'step-desc'},'Esta información se usará para acceder al panel de administración de tu negocio.')
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-title'},h('span',{className:'ct-icon'},'👤'),'Información personal'),
+      h('div',{className:'field-row'},
+        h('div',{className:'field'+(err.ownerName?' has-error':'')},
+          h('label',null,'Nombre completo ',h('span',{className:'req'},'*')),
+          h('input',{className:'inp',placeholder:'Ej. María González',value:d.ownerName||'',onInput:function(e){upd('ownerName',e.target.value)}}),
+          h('div',{className:'input-error'},err.ownerName)
+        ),
+        h('div',{className:'field'+(err.ownerPhone?' has-error':'')},
+          h('label',null,'Teléfono ',h('span',{className:'req'},'*')),
+          h('input',{className:'inp',placeholder:'834 123 4567',type:'tel',value:d.ownerPhone||'',onInput:function(e){upd('ownerPhone',e.target.value)}}),
+          h('div',{className:'input-error'},err.ownerPhone)
+        )
+      ),
+      h('div',{className:'field'+(err.ownerEmail?' has-error':'')},
+        h('label',null,'Correo electrónico ',h('span',{className:'req'},'*')),
+        h('input',{className:'inp',placeholder:'correo@ejemplo.com',type:'email',value:d.ownerEmail||'',onInput:function(e){upd('ownerEmail',e.target.value)}}),
+        h('div',{className:'input-hint'},'Con este correo accederás al panel'),
+        h('div',{className:'input-error'},err.ownerEmail)
+      ),
+      h('div',{className:'field'+(err.ownerPassword?' has-error':'')},
+        h('label',null,'Contraseña ',h('span',{className:'req'},'*')),
+        h('div',{className:'pass-wrap'},
+          h('input',{className:'inp',placeholder:'Mínimo 8 caracteres',type:showPass?'text':'password',value:d.ownerPassword||'',onInput:function(e){upd('ownerPassword',e.target.value)}}),
+          h('button',{className:'pass-toggle',type:'button',onClick:function(){setShowPass(!showPass)}},showPass?'🙈':'👁️')
+        ),
+        h('div',{className:'input-error'},err.ownerPassword)
+      )
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-title'},h('span',{className:'ct-icon'},'📋'),'Tipo de negocio'),
+      h('div',{className:'field'},
+        h('label',null,'Rol en el negocio'),
+        h('select',{className:'inp',value:d.ownerRole||'owner',onChange:function(e){upd('ownerRole',e.target.value)}},
+          h('option',{value:'owner'},'Dueño / Propietario'),
+          h('option',{value:'admin'},'Administrador'),
+          h('option',{value:'manager'},'Gerente'),
+          h('option',{value:'other'},'Otro')
+        )
+      ),
+      h('div',{className:'field'},
+        h('label',null,'RFC (opcional)'),
+        h('input',{className:'inp',placeholder:'GOGG900101AB1',value:d.ownerRfc||'',onInput:function(e){upd('ownerRfc',e.target.value.toUpperCase())},maxLength:13}),
+        h('div',{className:'input-hint'},'Para facturas o comprobantes del servicio')
+      )
+    ),
+    BtnRow(p,validate)
+  );
+}
+
+/* ── STEP 3: BUSINESS ── */
+function StepBusiness(p){
+  var d=p.data;
+  var[err,setErr]=useState({});
+  function upd(k,v){p.setData(function(x){return Object.assign({},x,{[k]:v})});}
+  function validate(){
+    var e={};
+    if(!(d.bizName||'').trim())e.bizName='El nombre del negocio es requerido';
+    if(!(d.bizCat||''))e.bizCat='Selecciona una categoría';
+    if(!(d.bizWhatsapp||'').trim()||d.bizWhatsapp.replace(/\D/g,'').length<10)e.bizWhatsapp='Número de WhatsApp de 10 dígitos';
+    if(!(d.bizMin||0)||isNaN(d.bizMin)||Number(d.bizMin)<=0)e.bizMin='Ingresa un pedido mínimo válido';
+    setErr(e);
+    return Object.keys(e).length===0;
+  }
+  var descLen=(d.bizDesc||'').length;
+  return h('div',{className:'fade-up'},
+    h('div',{className:'step-header'},
+      h('div',{className:'step-eyebrow'},'Paso 3 de 6'),
+      h('h2',{className:'step-title'},'Datos del negocio'),
+      h('p',{className:'step-desc'},'Esta información aparecerá en tu perfil dentro de la app Cravi.')
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-title'},h('span',{className:'ct-icon'},'🏪'),'Información principal'),
+      h('div',{className:'field'+(err.bizName?' has-error':'')},
+        h('label',null,'Nombre del negocio ',h('span',{className:'req'},'*')),
+        h('input',{className:'inp',placeholder:'Ej. Tacos El Güero',value:d.bizName||'',onInput:function(e){upd('bizName',e.target.value)},maxLength:80}),
+        h('div',{className:'input-error'},err.bizName)
+      ),
+      h('div',{className:'field'},
+        h('label',null,'Descripción corta ',h('span',{style:{color:'var(--t3)',fontWeight:400}},'(opcional)')),
+        h('textarea',{className:'inp',placeholder:'Ej. Los mejores tacos de Tampico, receta de familia desde 1987.',value:d.bizDesc||'',onInput:function(e){upd('bizDesc',e.target.value)},maxLength:160,style:{height:72}}),
+        h('div',{className:'char-count'},descLen+'/160')
+      ),
+      h('div',{className:'field'+(err.bizWhatsapp?' has-error':'')},
+        h('label',null,'Número de WhatsApp ',h('span',{className:'req'},'*')),
+        h('input',{className:'inp',placeholder:'8341234567',type:'tel',value:d.bizWhatsapp||'',onInput:function(e){upd('bizWhatsapp',e.target.value)}}),
+        h('div',{className:'input-hint'},'Al número donde llegarán los pedidos'),
+        h('div',{className:'input-error'},err.bizWhatsapp)
+      ),
+      h('div',{className:'field-row'},
+        h('div',{className:'field'+(err.bizMin?' has-error':'')},
+          h('label',null,'Pedido mínimo (MXN) ',h('span',{className:'req'},'*')),
+          h('input',{className:'inp',placeholder:'80',type:'number',min:0,value:d.bizMin||'',onInput:function(e){upd('bizMin',e.target.value)}}),
+          h('div',{className:'input-error'},err.bizMin)
+        ),
+        h('div',{className:'field'},
+          h('label',null,'Tiempo de entrega'),
+          h('select',{className:'inp',value:d.bizTime||'20-30',onChange:function(e){upd('bizTime',e.target.value)}},
+            h('option',{value:'10-20'},'10–20 min'),
+            h('option',{value:'20-30'},'20–30 min'),
+            h('option',{value:'25-40'},'25–40 min'),
+            h('option',{value:'30-45'},'30–45 min'),
+            h('option',{value:'40-60'},'40–60 min')
+          )
+        )
+      )
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-title'},h('span',{className:'ct-icon'},'🍽️'),'Giro / Categoría ',h('span',{className:'req'},'*')),
+      err.bizCat&&h('div',{style:{fontSize:12,color:'#E53935',marginBottom:8}},'Selecciona una categoría'),
+      h('div',{className:'cat-grid'},
+        CATS.map(function(c){
+          return h('label',{key:c.id,className:'cat-item'+(d.bizCat===c.id?' selected':'')},
+            h('input',{type:'radio',name:'bizCat',value:c.id,checked:d.bizCat===c.id,onChange:function(){upd('bizCat',c.id)}}),
+            h('span',{className:'cat-emoji'},c.emoji),
+            h('span',{className:'cat-label'},c.label)
+          );
+        })
+      )
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-title'},h('span',{className:'ct-icon'},'📍'),'Ubicación'),
+      h('div',{className:'field'},
+        h('label',null,'Dirección del negocio'),
+        h('input',{className:'inp',placeholder:'Ej. Calle Hidalgo 420, Col. Centro',value:d.bizAddress||'',onInput:function(e){upd('bizAddress',e.target.value)}})
+      ),
+      h('div',{className:'field-row'},
+        h('div',{className:'field'},
+          h('label',null,'Ciudad'),
+          h('input',{className:'inp',value:'Tampico',disabled:true,style:{background:'#f9f5f2',color:'var(--t3)'}})
+        ),
+        h('div',{className:'field'},
+          h('label',null,'Estado'),
+          h('input',{className:'inp',value:'Tamaulipas',disabled:true,style:{background:'#f9f5f2',color:'var(--t3)'}})
+        )
+      )
+    ),
+    BtnRow(p,validate)
+  );
+}
+
+/* ── STEP 4: BRANDING ── */
+function StepBranding(p){
+  var d=p.data;
+  var[logoPreview,setLogoPreview]=useState(d.logoPreview||null);
+  var[bannerPreview,setBannerPreview]=useState(d.bannerPreview||null);
+  var[dragLogo,setDragLogo]=useState(false);
+  var[dragBanner,setDragBanner]=useState(false);
+  var color=d.bizColor||'#FF4103';
+
+  function upd(k,v){p.setData(function(x){return Object.assign({},x,{[k]:v})});}
+
+  function handleFile(file,type){
+    if(!file||!file.type.startsWith('image/'))return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      if(type==='logo'){setLogoPreview(e.target.result);upd('logoPreview',e.target.result);}
+      else{setBannerPreview(e.target.result);upd('bannerPreview',e.target.result);}
+    };
+    reader.readAsDataURL(file);
+  }
+
+  var catObj=CATS.find(function(c){return c.id===d.bizCat})||{emoji:'🍽️',label:'Negocio'};
+  var bizName=d.bizName||'Tu Negocio';
+
+  return h('div',{className:'fade-up'},
+    h('div',{className:'step-header'},
+      h('div',{className:'step-eyebrow'},'Paso 4 de 6'),
+      h('h2',{className:'step-title'},'Imagen de tu negocio'),
+      h('p',{className:'step-desc'},'El logo y el banner son lo primero que ven tus clientes en la app. Usa imágenes de buena calidad.')
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-title'},h('span',{className:'ct-icon'},'🖼️'),'Logo y banner'),
+      h('div',{className:'upload-grid'},
+        // LOGO
+        h('div',null,
+          h('label',null,'Logo del negocio'),
+          logoPreview
+            ?h('div',{className:'upload-preview preview-logo'},
+                h('img',{src:logoPreview,alt:'Logo preview',style:{height:120,width:'100%',objectFit:'contain',background:'#f9f5f2'}}),
+                h('button',{className:'remove-btn',onClick:function(){setLogoPreview(null);upd('logoPreview',null)}},'✕')
+              )
+            :h('div',{className:'upload-zone'+(dragLogo?' drag-over':''),
+                onDragOver:function(e){e.preventDefault();setDragLogo(true)},
+                onDragLeave:function(){setDragLogo(false)},
+                onDrop:function(e){e.preventDefault();setDragLogo(false);handleFile(e.dataTransfer.files[0],'logo')}},
+                h('input',{type:'file',accept:'image/*',onChange:function(e){handleFile(e.target.files[0],'logo')}}),
+                h('div',{className:'upload-icon'},'📷'),
+                h('div',{className:'upload-label'},'Subir logo'),
+                h('div',{className:'upload-sub'},'PNG o JPG · Cuadrado')
+              ),
+          h('div',{className:'input-hint mt-4'},'Recomendado: 400×400px')
+        ),
+        // BANNER
+        h('div',null,
+          h('label',null,'Banner de portada'),
+          bannerPreview
+            ?h('div',{className:'upload-preview preview-banner'},
+                h('img',{src:bannerPreview,alt:'Banner preview',style:{height:140,width:'100%',objectFit:'cover'}}),
+                h('button',{className:'remove-btn',onClick:function(){setBannerPreview(null);upd('bannerPreview',null)}},'✕')
+              )
+            :h('div',{className:'upload-zone'+(dragBanner?' drag-over':''),
+                onDragOver:function(e){e.preventDefault();setDragBanner(true)},
+                onDragLeave:function(){setDragBanner(false)},
+                onDrop:function(e){e.preventDefault();setDragBanner(false);handleFile(e.dataTransfer.files[0],'banner')}},
+                h('input',{type:'file',accept:'image/*',onChange:function(e){handleFile(e.target.files[0],'banner')}}),
+                h('div',{className:'upload-icon'},'🌄'),
+                h('div',{className:'upload-label'},'Subir banner'),
+                h('div',{className:'upload-sub'},'PNG o JPG · Horizontal')
+              ),
+          h('div',{className:'input-hint mt-4'},'Recomendado: 1200×400px')
+        )
+      )
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-title'},h('span',{className:'ct-icon'},'🎨'),'Color de marca'),
+      h('p',{style:{fontSize:13,color:'var(--t2)',marginBottom:12}},'Se usa como color de fondo cuando no hay banner.'),
+      h('div',{className:'color-row'},
+        COLORS.map(function(c){
+          return h('div',{key:c,className:'color-swatch'+(color===c?' selected':''),style:{background:c},onClick:function(){upd('bizColor',c)},title:c});
+        })
+      ),
+      h('div',{className:'color-custom'},
+        h('label',{style:{fontSize:13,color:'var(--t2)',whiteSpace:'nowrap'}},'Color personalizado:'),
+        h('input',{type:'color',value:color,onChange:function(e){upd('bizColor',e.target.value)},title:'Elige un color personalizado'}),
+        h('span',{style:{fontSize:13,color:'var(--t2)',fontFamily:'monospace'}},color.toUpperCase())
+      )
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-title'},h('span',{className:'ct-icon'},'👁️'),'Vista previa en la app'),
+      h('div',{className:'brand-preview'},
+        h('div',{className:'brand-banner',style:{background:bannerPreview?'none':('linear-gradient(135deg,'+color+'cc,'+color+')')},},
+          bannerPreview?h('img',{src:bannerPreview,style:{width:'100%',height:'100%',objectFit:'cover'}}):h('span',null,catObj.emoji)
+        ),
+        h('div',{className:'brand-info'},
+          h('div',{style:{display:'flex',alignItems:'center',gap:10}},
+            logoPreview?h('img',{src:logoPreview,style:{width:40,height:40,borderRadius:8,objectFit:'contain',border:'1px solid var(--bd)',background:'#f9f5f2'}}):null,
+            h('div',null,
+              h('div',{className:'brand-info-name'},bizName),
+              h('div',{className:'brand-info-cat'},catObj.emoji,' ',catObj.label,' · ',d.bizTime||'20–30',' min')
+            )
+          )
+        )
+      )
+    ),
+    BtnRow(p,function(){return true;})
+  );
+}
+
+/* ── STEP 5: HOURS ── */
+function StepHours(p){
+  var d=p.data;
+  var hours=d.hours||defaultHours();
+  function updHours(day,key,val){
+    var nh=Object.assign({},hours);
+    nh[day]=Object.assign({},nh[day],{[key]:val});
+    p.setData(function(x){return Object.assign({},x,{hours:nh})});
+  }
+  function copyToAll(fromDay){
+    var src=hours[fromDay];
+    var nh={};
+    DAYS.forEach(function(d){nh[d.id]=Object.assign({},src);});
+    p.setData(function(x){return Object.assign({},x,{hours:nh})});
+  }
+  function copyWeekdays(fromDay){
+    var src=hours[fromDay];
+    var nh=Object.assign({},hours);
+    ['lun','mar','mie','jue','vie'].forEach(function(d){nh[d]=Object.assign({},src);});
+    p.setData(function(x){return Object.assign({},x,{hours:nh})});
+  }
+  return h('div',{className:'fade-up'},
+    h('div',{className:'step-header'},
+      h('div',{className:'step-eyebrow'},'Paso 5 de 6'),
+      h('h2',{className:'step-title'},'Horarios de atención'),
+      h('p',{className:'step-desc'},'Define los días y horas en que tu negocio estará disponible en Cravi.')
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-title'},h('span',{className:'ct-icon'},'🕐'),'Horario por día'),
+      h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}},
+        h('button',{className:'copy-hours-btn',type:'button',onClick:function(){copyToAll('lun')}},'Copiar lunes a todos'),
+        h('button',{className:'copy-hours-btn',type:'button',onClick:function(){copyWeekdays('lun')}},'Copiar lunes a L–V')
+      ),
+      DAYS.map(function(day){
+        var dh=hours[day.id]||{open:true,from:'09:00',to:'21:00'};
+        return h('div',{key:day.id,className:'hours-row'+(dh.open?'':' closed')},
+          h('div',{className:'day-name'},day.label),
+          h('input',{className:'time-inp',type:'time',value:dh.from,onChange:function(e){updHours(day.id,'from',e.target.value)},disabled:!dh.open}),
+          h('input',{className:'time-inp',type:'time',value:dh.to,onChange:function(e){updHours(day.id,'to',e.target.value)},disabled:!dh.open}),
+          h('div',{className:'toggle-wrap'},
+            h('input',{type:'checkbox',className:'toggle',id:'tog-'+day.id,checked:dh.open,onChange:function(e){updHours(day.id,'open',e.target.checked)}}),
+            h('label',{className:'toggle-label',htmlFor:'tog-'+day.id},dh.open?'Abierto':'Cerrado')
+          )
+        );
+      })
+    ),
+    h('div',{className:'card'},
+      h('div',{className:'card-title'},h('span',{className:'ct-icon'},'⚡'),'Estado inicial'),
+      h('div',{className:'field'},
+        h('label',null,'¿Cómo iniciar el negocio?'),
+        h('select',{className:'inp',value:d.bizInitStatus||'open',onChange:function(e){p.setData(function(x){return Object.assign({},x,{bizInitStatus:e.target.value})})}},
+          h('option',{value:'open'},'Abierto — visible y aceptando pedidos'),
+          h('option',{value:'closed'},'Cerrado — visible pero sin pedidos'),
+          h('option',{value:'hidden'},'Oculto — no visible aún en la app')
+        )
+      ),
+      h('div',{className:'input-hint'},'Puedes cambiar esto en cualquier momento desde tu panel')
+    ),
+    BtnRow(p,function(){return true;})
+  );
+}
+
+/* ── STEP 6: REVIEW ── */
+function StepReview(p){
+  var d=p.data;
+  var[submitting,setSubmitting]=useState(false);
+  var[done,setDone]=useState(false);
+
+  var catObj=CATS.find(function(c){return c.id===d.bizCat})||{emoji:'🍽️',label:'N/A'};
+  var openDays=DAYS.filter(function(day){return (d.hours||defaultHours())[day.id]?.open});
+
+  function submit(){
+    setSubmitting(true);
+    setTimeout(function(){setSubmitting(false);setDone(true);},2200);
+  }
+
+  if(done) return h('div',{className:'success-screen fade-up'},
+    h('div',{className:'success-icon check-pop'},'🎉'),
+    h('h2',{className:'success-title'},'¡Registro completado!'),
+    h('p',{className:'success-desc'},'Tu negocio ',h('strong',null,d.bizName),' ha sido registrado exitosamente en Cravi. Revisa tu correo para activar tu cuenta.'),
+    h('div',{className:'success-steps'},
+      h('div',{className:'success-step'},
+        h('div',{className:'ss-num'},'1'),
+        h('div',{className:'ss-text'},h('strong',null,'Revisa tu correo '),'(',d.ownerEmail,') y activa tu cuenta.')
+      ),
+      h('div',{className:'success-step'},
+        h('div',{className:'ss-num'},'2'),
+        h('div',{className:'ss-text'},'Accede al ',h('strong',null,'panel de administración'),' con tu email y contraseña.')
+      ),
+      h('div',{className:'success-step'},
+        h('div',{className:'ss-num'},'3'),
+        h('div',{className:'ss-text'},'Agrega tus ',h('strong',null,'productos y precios'),' para aparecer en la app.')
+      ),
+      h('div',{className:'success-step'},
+        h('div',{className:'ss-num'},'4'),
+        h('div',{className:'ss-text'},'¡Tu negocio estará ',h('strong',null,'visible en Cravi'),' en menos de 24 horas!')
+      )
+    ),
+    h('button',{className:'btn btn-primary',style:{background:'var(--p)',justifyContent:'center'},onClick:function(){window.location.reload()}},'Ir al panel de administración →')
+  );
+
+  return h('div',{className:'fade-up'},
+    h('div',{className:'step-header'},
+      h('div',{className:'step-eyebrow'},'Paso 6 de 6'),
+      h('h2',{className:'step-title'},'Resumen del registro'),
+      h('p',{className:'step-desc'},'Revisa que todo esté correcto antes de confirmar.')
+    ),
+    // BRAND PREVIEW
+    h('div',{className:'card'},
+      h('div',{className:'brand-preview'},
+        h('div',{className:'brand-banner',style:{background:d.bannerPreview?'none':('linear-gradient(135deg,'+(d.bizColor||'#FF4103')+'cc,'+(d.bizColor||'#FF4103')+')'),height:80,fontSize:40,display:'flex',alignItems:'center',justifyContent:'center'}},
+          d.bannerPreview?h('img',{src:d.bannerPreview,style:{width:'100%',height:80,objectFit:'cover'}}):catObj.emoji
+        ),
+        h('div',{className:'brand-info',style:{display:'flex',gap:12,alignItems:'center'}},
+          d.logoPreview?h('img',{src:d.logoPreview,style:{width:48,height:48,borderRadius:8,objectFit:'contain',border:'1px solid var(--bd)',background:'#f9f5f2',flexShrink:0}}):null,
+          h('div',null,
+            h('div',{className:'brand-info-name'},d.bizName||'—'),
+            h('div',{className:'brand-info-cat'},catObj.emoji,' ',catObj.label,' · ',d.bizTime||'20–30',' min · Mín. $',d.bizMin||0,' MXN'),
+            h('div',{style:{marginTop:6}},
+              h('span',{className:'badge-plan '+(d.plan==='plus'?'badge-plus':'badge-basic')},d.plan==='plus'?'⚡ Plan Plus':'Plan Básico')
+            )
+          )
+        )
+      )
+    ),
+    // PROPIETARIO
+    h('div',{className:'card'},
+      h('div',{className:'review-section'},
+        h('h4',null,'Propietario'),
+        RR('Nombre',d.ownerName||'—'),
+        RR('Correo',d.ownerEmail||'—'),
+        RR('Teléfono',d.ownerPhone||'—'),
+        RR('Rol',d.ownerRole==='owner'?'Dueño / Propietario':d.ownerRole==='admin'?'Administrador':d.ownerRole==='manager'?'Gerente':'Otro'),
+        d.ownerRfc&&RR('RFC',d.ownerRfc)
+      ),
+      h('div',{className:'review-section'},
+        h('h4',null,'Negocio'),
+        RR('Nombre',d.bizName||'—'),
+        d.bizDesc&&RR('Descripción',d.bizDesc),
+        RR('Categoría',catObj.emoji+' '+catObj.label),
+        RR('WhatsApp',d.bizWhatsapp||'—'),
+        RR('Pedido mínimo','$'+(d.bizMin||0)+' MXN'),
+        RR('Tiempo de entrega',(d.bizTime||'20-30')+' min'),
+        d.bizAddress&&RR('Dirección',d.bizAddress)
+      ),
+      h('div',{className:'review-section'},
+        h('h4',null,'Horarios de atención'),
+        h('div',{style:{display:'flex',flexWrap:'wrap',gap:6,padding:'4px 0'}},
+          openDays.map(function(day){
+            var dh=(d.hours||defaultHours())[day.id];
+            return h('div',{key:day.id,style:{background:'var(--pl)',borderRadius:8,padding:'5px 10px',fontSize:13}},
+              h('strong',null,day.label.slice(0,3),': '),dh.from,' – ',dh.to
+            );
+          }),
+          openDays.length===0&&h('span',{style:{fontSize:13,color:'var(--t3)'}},'Sin días configurados')
+        )
+      )
+    ),
+    h('div',{style:{fontSize:13,color:'var(--t3)',textAlign:'center',marginBottom:8,lineHeight:1.6}},
+      'Al confirmar aceptas los ',h('a',{href:'#',style:{color:'var(--p)'}},'Términos y Condiciones'),' y la ',h('a',{href:'#',style:{color:'var(--p)'}},'Política de Privacidad'),' de Cravi.'
+    ),
+    h('div',{className:'btn-row'},
+      h('button',{className:'btn btn-secondary',onClick:p.prev},'← Atrás'),
+      h('button',{className:'btn btn-primary',onClick:submit,disabled:submitting,style:{flex:1}},
+        submitting?'⏳ Registrando...':'✅ Confirmar registro'
+      )
+    )
+  );
+}
+
+function RR(k,v){
+  return h('div',{className:'review-row'},
+    h('span',{className:'review-key'},k),
+    h('span',{className:'review-val'},v)
+  );
+}
+
+function BtnRow(p,validate){
+  return h('div',{className:'btn-row'},
+    p.stepIdx>0?h('button',{className:'btn btn-secondary',onClick:p.prev},'← Atrás'):null,
+    h('button',{className:'btn btn-primary',onClick:function(){
+      if(validate&&!validate())return;
+      p.next();
+    },style:{flex:1}},
+      p.stepIdx===STEPS.length-2?'Ver resumen →':'Continuar →'
+    )
+  );
+}
+
+/* ── APP ── */
+function App(){
+  var[step,setStep]=useState(0);
+  var[data,setData]=useState({plan:'plus',ownerRole:'owner',bizTime:'20-30',bizInitStatus:'open',hours:defaultHours()});
+
+  var props={
+    data:data,setData:setData,
+    stepIdx:step,
+    next:function(){window.scrollTo(0,0);setStep(function(s){return Math.min(s+1,STEPS.length-1)});},
+    prev:function(){window.scrollTo(0,0);setStep(function(s){return Math.max(s-1,0)});},
+  };
+
+  var screens=[StepPlan,StepOwner,StepBusiness,StepBranding,StepHours,StepReview];
+  var Screen=screens[step];
+
+  return h(React.Fragment,null,
+    h(Progress,{current:step}),
+    h(Screen,props)
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('steps-container')).render(h(App,null));
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cravi - Panel de Negocio</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--p:#FF4103;--bg:#F9FAFB;--sf:#FFF;--bd:#E5E7EB;--t:#001621;--t2:#6B7280;--orange:#FF6B2B}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--t)}
+.header{background:var(--sf);border-bottom:1px solid var(--bd);padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:20px;font-weight:800}
+.logo span:first-child{color:var(--p)}
+.logo span:last-child{color:var(--orange)}
+.container{max-width:1000px;margin:32px auto;padding:0 24px}
+.card{background:var(--sf);border-radius:12px;border:1px solid var(--bd);padding:24px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.title{font-size:18px;font-weight:700;margin-bottom:16px}
+.inp{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;font-family:inherit;margin-bottom:16px}
+.btn{background:var(--p);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+</style>
+</head>
+<body>
+<div id="root">Cargando panel...</div>
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+(function(){
+  var h = React.createElement;
+  var useState = React.useState, useEffect = React.useEffect;
+
+  function App(){
+    var bId = new URLSearchParams(window.location.search).get('id');
+    var _b=useState(null), biz=_b[0], setBiz=_b[1];
+    var _p=useState([]), prods=_p[0], setProds=_p[1];
+    var _n=useState(''), name=_n[0], setName=_n[1];
+    var _pr=useState(''), price=_pr[0], setPrice=_pr[1];
+    var _c=useState('Platos Principales'), cat=_c[0], setCat=_c[1];
+    var _img=useState(''), photo=_img[0], setPhoto=_img[1];
+
+    function handleFile(e){
+      var f=e.target.files[0];
+      if(!f) return;
+      var r=new FileReader();
+      r.onload=function(ev){setPhoto(ev.target.result)};
+      r.readAsDataURL(f);
+    }
+
+    useEffect(function(){
+      if(!bId) return;
+      fetch('http://localhost:3000/api/businesses')
+        .then(function(r){return r.json()})
+        .then(function(d){
+           var b = d.find(function(x){return x.id===bId});
+           if(b) setBiz(b);
+        });
+      
+      fetch('http://localhost:3000/api/products?businessId='+bId)
+        .then(function(r){return r.json()})
+        .then(function(d){setProds(d)});
+    }, [bId]);
+
+    function saveProd(){
+      if(!bId) return alert('No hay negocio seleccionado');
+      fetch('http://localhost:3000/api/products', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({businessId: bId, name: name, price: parseFloat(price), cat: cat, photo: photo})
+      }).then(function(){
+        setName(''); setPrice(''); setPhoto('');
+        return fetch('http://localhost:3000/api/products?businessId='+bId);
+      }).then(function(r){return r.json()}).then(function(d){setProds(d)});
+    }
+
+    if(!bId) return h('div', {className:'container', style:{marginTop:100}}, 
+      h('div', {className:'card', style:{maxWidth:400, margin:'0 auto', textAlign:'center'}},
+        h('h2', {className:'title'}, 'Acceder al Panel'),
+        h('p', {style:{marginBottom:16, color:'var(--t2)', fontSize:14}}, 'Ingresa el ID de tu negocio para continuar.'),
+        h('input', {className:'inp', id:'bizid', placeholder:'Ej. 1776433405064'}),
+        h('button', {className:'btn', style:{width:'100%'}, onClick:function(){
+          var val = document.getElementById('bizid').value.trim();
+          if(val) window.location.href = '?id=' + val;
+        }}, 'Entrar al Panel'),
+        h('div', {style:{marginTop:24, fontSize:13}}, '¿No tienes negocio? ', h('a', {href:'cravi-onboarding.html', style:{color:'var(--p)', fontWeight:600, textDecoration:'none'}}, 'Regístralo aquí'))
+      )
+    );
+
+    return h('div', null, 
+      h('header', {className:'header'}, 
+        h('div', {className:'logo', style:{display:'flex', alignItems:'center', gap:8}}, h('img',{src:'logo.png', alt:'Cravi', style:{height:24}}), h('span',null,'Panel')),
+        h('div', {style:{fontWeight:600}}, biz ? biz.bizName : 'Cargando...')
+      ),
+      h('div', {className:'container'},
+        h('div', {className:'card'},
+          h('h2', {className:'title'}, 'Nuevo Producto'),
+          h('div', {className:'grid'},
+            h('input', {className:'inp', placeholder:'Nombre del producto', value:name, onChange:function(e){setName(e.target.value)}}),
+            h('input', {className:'inp', placeholder:'Precio ($)', type:'number', value:price, onChange:function(e){setPrice(e.target.value)}}),
+            h('input', {className:'inp', placeholder:'Categoría (Ej. Bebidas)', value:cat, onChange:function(e){setCat(e.target.value)}}),
+            h('input', {className:'inp', type:'file', accept:'image/*', onChange:handleFile})
+          ),
+          photo && h('img', {src:photo, style:{height:80, width:80, marginBottom:16, objectFit:'cover', borderRadius:8, border:'1px solid var(--bd)'}}),
+          h('button', {className:'btn', style:{display:'block'}, onClick:saveProd}, 'Guardar Producto')
+        ),
+        h('div', {className:'card'},
+          h('h2', {className:'title'}, 'Tus Productos'),
+          prods.length === 0 ? h('p', null, 'No hay productos.') :
+          h('ul', {style:{listStyle:'none'}},
+            prods.map(function(p){
+              return h('li', {key:p.id, style:{padding:'12px', borderBottom:'1px solid var(--bd)', display:'flex', alignItems:'center', justifyContent:'space-between'}},
+                h('div', {style:{display:'flex', gap:'12px', alignItems:'center'}},
+                  p.photo ? h('img', {src:p.photo, style:{width:48, height:48, borderRadius:8, objectFit:'cover'}}) : null,
+                  h('div', null, h('div', {style:{fontWeight:'600'}}, p.name), h('div', {style:{fontSize:12,color:'var(--t2)'}}, p.cat))
+                ),
+                h('span', {style:{fontWeight:'600'}}, '$', p.price)
+              );
+            })
+          )
+        )
+      )
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FF4103">
+<title>Cravi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--p:#FF4103;--pl:#FFF2EE;--pd:#CC3302;--bg:#FFFBF8;--sf:#FFF;--bd:#EDE8E3;--t:#001621;--t2:#6B5F58;--t3:#A89890;--gr:#22A861;--r:16px;--nh:68px;--orange:#ef8331}
+html,body{height:100%;background:var(--bg);font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--t);-webkit-font-smoothing:antialiased}
+#root{max-width:430px;margin:0 auto;height:100vh;background:var(--bg);position:relative;overflow:hidden}
+.wrap{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+.wrap.hide{display:none}
+.pb{padding-bottom:calc(var(--nh) + 20px)}
+.bnav{position:absolute;bottom:0;left:0;right:0;height:var(--nh);background:#fff;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-around;padding:0 4px 10px;z-index:100}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 14px;border:none;background:none;cursor:pointer;border-radius:10px;font-family:inherit}
+.ni.on .nl{color:var(--p);font-weight:700}
+.nl{font-size:11px;color:var(--t3)}
+.card{background:#fff;border-radius:var(--r);border:1px solid var(--bd)}
+.btn{background:var(--p);color:#fff;border:none;border-radius:100px;padding:15px 28px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .1s}
+.btn:active{background:var(--pd);transform:scale(.98)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:100px;border:1.5px solid var(--bd);font-size:13px;font-weight:500;background:#fff;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit;color:var(--t)}
+.chip.on{background:var(--p);border-color:var(--p);color:#fff}
+.bdg{background:var(--p);color:#fff;border-radius:100px;font-size:11px;font-weight:700;padding:2px 7px;min-width:20px;text-align:center}
+.ibtn{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--bd);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.qc{display:flex;align-items:center;gap:10px;background:var(--pl);border-radius:100px;padding:4px}
+.qb{width:28px;height:28px;border-radius:50%;background:var(--p);color:#fff;border:none;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;font-family:inherit}
+.qb:active{background:var(--pd)}
+.qn{font-size:15px;font-weight:700;min-width:20px;text-align:center}
+.rc{background:#fff;border-radius:var(--r);border:1px solid var(--bd);overflow:hidden;cursor:pointer;transition:transform .15s}
+.rc:active{transform:scale(.98)}
+.inp{width:100%;padding:13px 15px;border:1.5px solid var(--bd);border-radius:12px;font-family:inherit;font-size:15px;background:#fff;color:var(--t);outline:none;transition:border-color .15s}
+.inp:focus{border-color:var(--p)}
+.sbar{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--bd);border-radius:12px;padding:11px 15px;cursor:pointer}
+.sbar:focus-within{border-color:var(--p)}
+.sbar input{border:none;background:none;flex:1;font-family:inherit;font-size:14px;color:var(--t);outline:none}
+.sbar input::placeholder{color:var(--t3)}
+.sh{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--bd)}
+.sdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.sdot.dn{background:var(--gr);color:#fff}
+.sdot.cu{background:var(--p);color:#fff}
+.sdot.pe{background:#F0EBE7;color:var(--t3)}
+.sln{width:2px;height:26px;margin-left:12px}
+.sln.dn{background:var(--gr)}
+.sln.pe{background:var(--bd)}
+.dv{height:1px;background:var(--bd)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .35s ease both}
+@keyframes scaleIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.si{animation:scaleIn .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.pu{animation:pulse 1.4s ease-in-out infinite}
+</style>
+</head>
+<body>
+<div id="root">
+  <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;color:#FF4103;font-family:system-ui,sans-serif">
+    <div style="font-size:48px">🍽️</div>
+    <img src="logo.png" alt="Cravi" style="height:32px;">
+    <div style="font-size:13px;color:#A89890">Necesitas conexión a internet la primera vez</div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+
+<script>
+(function(){
+'use strict';
+if(!window.React||!window.ReactDOM){
+  document.getElementById('root').innerHTML='<div style="padding:40px;text-align:center;color:#2b6a43;font-family:system-ui,sans-serif"><div style="font-size:48px;margin-bottom:16px">⚠️</div><div style="font-size:17px;font-weight:700;margin-bottom:8px">Sin conexión a internet</div><div style="font-size:14px;color:#6B5F58;line-height:1.6">Cravi necesita internet para cargar por primera vez.<br>Conéctate y recarga la página.</div></div>';
+  return;
+}
+
+var h=React.createElement;
+var useState=React.useState,useEffect=React.useEffect,useRef=React.useRef;
+
+/* ICONS */
+var PATHS={
+  home:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z||M9 22V12h6v10',
+  search:'M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z',
+  orders:'M9 11l3 3L22 4||M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+  profile:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2||M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  back:'M19 12H5||M12 19l-7-7 7-7',
+  bell:'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9||M13.73 21a2 2 0 0 1-3.46 0',
+  pin:'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z||M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  chev:'M9 18l6-6-6-6',
+  close:'M18 6L6 18||M6 6l12 12',
+  phone:'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.06 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z',
+};
+function Ico(p){
+  var parts=(PATHS[p.n]||'').split('||');
+  return h('svg',{width:p.sz||20,height:p.sz||20,viewBox:'0 0 24 24',fill:'none',stroke:p.c||'currentColor',strokeWidth:'2',strokeLinecap:'round',strokeLinejoin:'round'},
+    parts.map(function(d,i){return h('path',{key:i,d:d})})
+  );
+}
+
+/* DATA */
+var CATS=[
+  {id:'all',label:'Todo',icon:'🍽️'},
+  {id:'tacos',label:'Tacos',icon:'🌮'},
+  {id:'pizza',label:'Pizza',icon:'🍕'},
+  {id:'burgers',label:'Burgers',icon:'🍔'},
+  {id:'sushi',label:'Sushi',icon:'🍣'},
+  {id:'ramen',label:'Ramen',icon:'🍜'},
+];
+var RESTS=[
+  {id:1,name:'Tacos El Güero',cat:'tacos',emoji:'🌮',
+   grad:'linear-gradient(135deg,#FF9A3C,#FF4103)',
+   rating:4.8,reviews:342,time:'20–30',min:80,tag:'Más popular',
+   desc:'Los mejores tacos de la región, receta de familia desde 1987.',
+   menu:[
+     {cat:'Tacos',items:[
+       {id:101,name:'Taco al Pastor',desc:'Con piña, cilantro y salsa verde',price:25,e:'🌮'},
+       {id:102,name:'Taco de Bistek',desc:'Carne de res, cebolla, cilantro',price:28,e:'🥩'},
+       {id:103,name:'Taco de Carnitas',desc:'Carnitas de cerdo doradas',price:27,e:'🐷'},
+       {id:104,name:'Taco de Suadero',desc:'Suadero + cebolla + cilantro',price:26,e:'🌮'},
+     ]},
+     {cat:'Quesadillas',items:[
+       {id:105,name:'Quesadilla de Queso',desc:'Tortilla de maíz, queso Oaxaca',price:45,e:'🫓'},
+       {id:106,name:'Quesadilla de Pastor',desc:'Pastor + queso derretido',price:55,e:'🧀'},
+     ]},
+     {cat:'Bebidas',items:[
+       {id:107,name:'Agua de Jamaica',desc:'Fresca y natural',price:20,e:'🍹'},
+       {id:108,name:'Agua de Horchata',desc:'Arroz, canela y vainilla',price:20,e:'🥛'},
+       {id:109,name:'Refresco',desc:'Coca-Cola, Sprite o Naranjada',price:25,e:'🥤'},
+     ]},
+   ]},
+  {id:2,name:'Pizza Roma',cat:'pizza',emoji:'🍕',
+   grad:'linear-gradient(135deg,#FF6B6B,#C62828)',
+   rating:4.5,reviews:218,time:'30–45',min:150,tag:'Promo hoy',
+   desc:'Pizzas artesanales con masa madre e ingredientes frescos.',
+   menu:[
+     {cat:'Pizzas',items:[
+       {id:201,name:'Margherita',desc:'Jitomate, mozzarella, albahaca',price:140,e:'🍕'},
+       {id:202,name:'Pepperoni',desc:'Pepperoni, mozzarella, orégano',price:160,e:'🍕'},
+       {id:203,name:'Hawaiana',desc:'Jamón, piña, mozzarella',price:155,e:'🍍'},
+       {id:204,name:'4 Quesos',desc:'Mozzarella, gouda, gorgonzola, parmesano',price:175,e:'🧀'},
+     ]},
+     {cat:'Bebidas',items:[
+       {id:205,name:'Refresco 600ml',desc:'Coca-Cola, Sprite, Naranjada',price:30,e:'🥤'},
+       {id:206,name:'Agua Natural',desc:'Botella 500ml',price:20,e:'💧'},
+     ]},
+   ]},
+  {id:3,name:'La Burguesía',cat:'burgers',emoji:'🍔',
+   grad:'linear-gradient(135deg,#FFD54F,#FF8F00)',
+   rating:4.6,reviews:189,time:'25–40',min:120,tag:'Nuevo',
+   desc:'Smash burgers con carne 100% res y salsas artesanales.',
+   menu:[
+     {cat:'Burgers',items:[
+       {id:301,name:'Classic Smash',desc:'2 patties, queso americano, pepinillo',price:110,e:'🍔'},
+       {id:302,name:'Bacon BBQ',desc:'Tocino, cheddar, cebolla caramelizada',price:130,e:'🥓'},
+       {id:303,name:'Veggie',desc:'Portobello, queso suizo, aguacate',price:105,e:'🥑'},
+     ]},
+     {cat:'Extras',items:[
+       {id:304,name:'Papas Fritas',desc:'Con sal de mar y perejil',price:45,e:'🍟'},
+       {id:305,name:'Aros de Cebolla',desc:'Empanizados, salsa ranch',price:50,e:'🧅'},
+     ]},
+     {cat:'Bebidas',items:[
+       {id:306,name:'Limonada Rosa',desc:'Limón, frutos rojos, hielo',price:40,e:'🍋'},
+       {id:307,name:'Malteada Vainilla',desc:'500ml, helado artesanal',price:60,e:'🥤'},
+     ]},
+   ]},
+  {id:4,name:'Sushi Fusion',cat:'sushi',emoji:'🍣',
+   grad:'linear-gradient(135deg,#80CBC4,#00695C)',
+   rating:4.7,reviews:156,time:'40–55',min:200,tag:'',
+   desc:'Rolls creativos con ingredientes frescos de mar y tierra.',
+   menu:[
+     {cat:'Rolls',items:[
+       {id:401,name:'Dragon Roll',desc:'Camarón tempura, aguacate, anguila',price:185,e:'🐉'},
+       {id:402,name:'Spicy Tuna',desc:'Atún, mayo spicy, pepino',price:165,e:'🌶️'},
+       {id:403,name:'Philly Roll',desc:'Salmón, queso crema, pepino',price:155,e:'🍣'},
+       {id:404,name:'California Roll',desc:'Jaiba, aguacate, pepino',price:145,e:'🦀'},
+     ]},
+     {cat:'Starters',items:[
+       {id:405,name:'Edamame',desc:'Con sal de mar y aceite de sésamo',price:55,e:'🫛'},
+       {id:406,name:'Miso Soup',desc:'Tofu, algas, cebollín',price:45,e:'🍲'},
+     ]},
+   ]},
+  {id:5,name:'Antojitos La Abuela',cat:'tacos',emoji:'🫔',
+   grad:'linear-gradient(135deg,#CE93D8,#6A1B9A)',
+   rating:4.9,reviews:412,time:'15–25',min:60,tag:'⭐ Top',
+   desc:'Antojitos tradicionales tampiqueños. ¡Igual que en casa!',
+   menu:[
+     {cat:'Antojitos',items:[
+       {id:501,name:'Gordita de Chicharrón',desc:'Masa de maíz, chicharrón prensado',price:30,e:'🫔'},
+       {id:502,name:'Sope de Frijol',desc:'Frijoles negros, crema, queso',price:35,e:'🫓'},
+       {id:503,name:'Tlayuda',desc:'Tortilla grande, frijoles, tasajo',price:65,e:'🌯'},
+       {id:504,name:'Tamales',desc:'Rajas o picadillo, 2 piezas',price:40,e:'🫔'},
+     ]},
+     {cat:'Bebidas',items:[
+       {id:505,name:'Agua Fresca',desc:'Jamaica, Limón u Horchata',price:18,e:'🍹'},
+       {id:506,name:'Café de Olla',desc:'Con piloncillo y canela',price:22,e:'☕'},
+     ]},
+   ]},
+  {id:6,name:'Ramen Kokoro',cat:'ramen',emoji:'🍜',
+   grad:'linear-gradient(135deg,#90CAF9,#1565C0)',
+   rating:4.4,reviews:98,time:'35–50',min:130,tag:'',
+   desc:'Ramen artesanal con caldos que se cocinan por 12 horas.',
+   menu:[
+     {cat:'Ramens',items:[
+       {id:601,name:'Tonkotsu',desc:'Caldo de cerdo, chashu, huevo nitamago',price:145,e:'🍜'},
+       {id:602,name:'Shoyu',desc:'Base de soya, nori, bambú',price:135,e:'🍜'},
+       {id:603,name:'Miso Ramen',desc:'Pasta de miso, tofu, maíz',price:140,e:'🍜'},
+     ]},
+     {cat:'Extras',items:[
+       {id:604,name:'Gyozas',desc:'6 piezas, salsa ponzu',price:75,e:'🥟'},
+     ]},
+   ]},
+];
+
+/* SHARED */
+function s(o){return Object.assign({},o)}
+function RestCard(p){
+  var r=p.r;
+  return h('div',{className:'rc',onClick:p.onClick},
+    h('div',{style:{height:140,background:r.banner?('url('+r.banner+') center/cover'):r.grad,display:'flex',alignItems:'center',justifyContent:'center',fontSize:62,position:'relative'}},
+      !r.banner&&r.emoji,
+      r.tag&&h('div',{style:{position:'absolute',top:10,left:12,background:'rgba(0,0,0,.55)',color:'#fff',borderRadius:100,padding:'3px 11px',fontSize:12,fontWeight:600}},r.tag)
+    ),
+    h('div',{style:{padding:'13px 15px 15px'}},
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}},
+        h('div',{style:{fontSize:15,fontWeight:700}},r.name),
+        h('div',{style:{display:'flex',alignItems:'center',gap:4,fontSize:13,fontWeight:600}},
+          h('span',{style:{color:'#F5A623'}},'★'),r.rating,
+          h('span',{style:{fontWeight:400,color:'var(--t3)'}},'(',r.reviews,')')
+        )
+      ),
+      h('p',{style:{fontSize:13,color:'var(--t2)',marginBottom:9,lineHeight:1.45}},r.desc),
+      h('div',{style:{display:'flex',gap:16,fontSize:13,color:'var(--t2)'}},
+        h('span',null,'⏱ ',r.time,' min'),
+        h('span',null,'📦 Mín. $',r.min,' MXN')
+      )
+    )
+  );
+}
+function CartFAB(p){
+  var cnt=p.cart.reduce(function(s,i){return s+i.qty},0);
+  var tot=p.cart.reduce(function(s,i){return s+i.price*i.qty},0);
+  if(!cnt)return null;
+  return h('div',{style:{padding:'0 18px 12px'}},
+    h('button',{className:'btn',onClick:function(){p.nav('cart')},style:{justifyContent:'space-between',padding:'14px 22px',boxShadow:'0 4px 20px rgba(255,65,3,.35)'}},
+      h('span',{className:'bdg',style:{background:'rgba(255,255,255,.25)'}},cnt),
+      h('span',null,'Ver carrito'),
+      h('span',null,'$',tot,' MXN')
+    )
+  );
+}
+
+/* ONBOARDING */
+function Onboarding(p){
+  var _=useState(0),step=_[0],setStep=_[1];
+  var slides=[
+    {e:'🍽️',bg:'#EBF3EE',t:'Bienvenido a Cravi',d:'Descubre los mejores restaurantes y pide tu comida favorita en minutos.'},
+    {e:'⚡',bg:'#FFFDE7',t:'Pide en segundos',d:'Explora el menú, arma tu orden y confírmala con solo unos toques. Sin complicaciones.'},
+    {e:'📍',bg:'#E8F5E9',t:'Sigue tu pedido',d:'Sabe en qué etapa está tu pedido en todo momento hasta que llega a tus manos.'},
+  ];
+  var sl=slides[step];
+  return h('div',{style:{minHeight:'100vh',display:'flex',flexDirection:'column',background:'#FFFBF8'}},
+    h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 32px 0',textAlign:'center'}},
+      h('div',{key:step+'e',className:'si',style:{width:172,height:172,borderRadius:'50%',background:sl.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:76,marginBottom:32}},sl.e),
+      h('img',{key:step+'logo',src:'logo.png',alt:'Cravi',style:{height:24,marginBottom:12,objectFit:'contain'}}),
+      h('h1',{key:step+'t',className:'fu',style:{fontSize:24,fontWeight:800,lineHeight:1.25,marginBottom:12}},sl.t),
+      h('p',{key:step+'d',className:'fu',style:{fontSize:15,color:'#6B5F58',lineHeight:1.65,maxWidth:280}},sl.d)
+    ),
+    h('div',{style:{display:'flex',justifyContent:'center',gap:8,padding:'28px 0 0'}},
+      slides.map(function(_,i){return h('div',{key:i,onClick:function(){setStep(i)},style:{height:8,width:i===step?24:8,borderRadius:4,background:i===step?'#FF4103':'#EDE8E3',transition:'all .3s',cursor:'pointer'}})})
+    ),
+    h('div',{style:{padding:'22px 28px 52px',display:'flex',flexDirection:'column',gap:12}},
+      step<2
+        ?[h('button',{key:'c',className:'btn',onClick:function(){setStep(step+1)}},'Continuar'),
+          h('button',{key:'s',onClick:p.done,style:{background:'none',border:'none',color:'#A89890',fontSize:14,cursor:'pointer',padding:'8px',fontFamily:'inherit',fontWeight:500}},'Saltar introducción')]
+        :h('button',{className:'btn',onClick:p.done,style:{fontSize:17}},'¡Empezar a pedir! 🍽️')
+    )
+  );
+}
+
+/* HOME */
+function Home(p){
+  var _=useState('all'),cat=_[0],setCat=_[1];
+  var _loc=useState('Obteniendo ubicación...'),loc=_loc[0],setLoc=_loc[1];
+  useEffect(function(){
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(function(pos){
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+pos.coords.latitude+'&lon='+pos.coords.longitude)
+        .then(function(r){return r.json()})
+        .then(function(d){
+          var city=d.address.city||d.address.town||d.address.village||'Tu ubicación';
+          var state=d.address.state||'';
+          setLoc(city+(state?', '+state:''));
+        }).catch(function(){setLoc('Tu ubicación actual')});
+      },function(){setLoc('Tu ubicación actual')});
+    }else{setLoc('Tu ubicación actual');}
+  },[]);
+  var rests=p.rests||[];
+  var fil=cat==='all'?rests:rests.filter(function(r){return r.cat===cat});
+  var feat=rests[0];
+  return h('div',null,
+    h('div',{className:'sh',style:{padding:'13px 18px 11px'}},
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:11}},
+        h('div',null,
+          h('div',{style:{fontSize:12,color:'#A89890',display:'flex',alignItems:'center',gap:4}},
+            h(Ico,{n:'pin',sz:11,c:'var(--orange)'}), loc
+          ),
+          h('div',{style:{fontSize:19,fontWeight:800,marginTop:1}},'¿Qué se te antoja? 🤔')
+        ),
+        h('button',{className:'ibtn',onClick:function(){p.nav('orders')}},h(Ico,{n:'bell',sz:18}))
+      ),
+      h('div',{className:'sbar',onClick:function(){p.nav('search')}},
+        h(Ico,{n:'search',sz:16,c:'#A89890'}),
+        h('span',{style:{fontSize:14,color:'#A89890'}},'Buscar restaurante o platillo...')
+      )
+    ),
+    h('div',{className:'pb'},
+      h('div',{style:{padding:'13px 0 3px'}},
+        h('div',{style:{display:'flex',gap:8,overflowX:'auto',padding:'0 18px',scrollbarWidth:'none'}},
+          CATS.map(function(c){return h('button',{key:c.id,className:'chip'+(cat===c.id?' on':''),onClick:function(){setCat(c.id)}},c.icon,' ',c.label)})
+        )
+      ),
+      cat==='all'&&feat&&h('div',{style:{margin:'13px 18px',borderRadius:14,overflow:'hidden',background:feat.banner?('linear-gradient(rgba(0,0,0,0.2),rgba(0,0,0,0.7)), url('+feat.banner+') center/cover'):'linear-gradient(135deg,#FF9A3C,#FF4103)',padding:'18px',cursor:'pointer'},onClick:function(){p.nav('restaurant',feat)}},
+        h('div',{style:{fontSize:11,fontWeight:700,color:'rgba(255,255,255,.8)',letterSpacing:'.08em',marginBottom:5}},'⭐ NUEVO NEGOCIO'),
+        h('div',{style:{fontSize:19,fontWeight:800,color:'#fff',marginBottom:3}},feat.name),
+        h('div',{style:{fontSize:13,color:'rgba(255,255,255,.85)',marginBottom:13}},feat.time,' min · Desde $',feat.min,' MXN'),
+        h('div',{style:{display:'inline-block',background:'#fff',color:'#FF4103',borderRadius:100,padding:'7px 17px',fontSize:13,fontWeight:700}},'Ver menú →')
+      ),
+      h('div',{style:{padding:'0 18px 16px'}},
+        h('div',{style:{fontSize:14,fontWeight:700,marginBottom:11,marginTop:4}},
+          cat==='all'?'Restaurantes cercanos':(CATS.find(function(c){return c.id===cat})||{}).label,
+          h('span',{style:{fontSize:13,fontWeight:400,color:'#A89890',marginLeft:8}},'(',fil.length,')')
+        ),
+        h('div',{style:{display:'flex',flexDirection:'column',gap:13}},
+          fil.map(function(r){return h(RestCard,{key:r.id,r:r,onClick:function(){p.nav('restaurant',r)}})})
+        )
+      ),
+      h(CartFAB,{cart:p.cart,nav:p.nav})
+    )
+  );
+}
+
+/* SEARCH */
+function Search(p){
+  var _q=useState(''),q=_q[0],setQ=_q[1];
+  var _t=useState(''),tag=_t[0],setTag=_t[1];
+  var ref=useRef(null);
+  useEffect(function(){setTimeout(function(){ref.current&&ref.current.focus()},120);},[]);
+  var tags=['Tacos','Pizza','Burgers','Sushi','Más rápido','Menor precio'];
+  var rests=p.rests||[];
+  var res=rests.filter(function(r){
+    var m=q.toLowerCase();
+    var mq=!m||r.name.toLowerCase().includes(m)||r.cat.includes(m);
+    var mt=!tag||(tag==='Más rápido'?parseInt(r.time)<30:tag==='Menor precio'?r.min<100:r.cat===tag.toLowerCase()||r.name.toLowerCase().includes(tag.toLowerCase()));
+    return mq&&mt;
+  });
+  return h('div',null,
+    h('div',{className:'sh',style:{padding:'11px 15px',display:'flex',gap:10,alignItems:'center'}},
+      h('button',{className:'ibtn',onClick:p.back},h(Ico,{n:'back',sz:18})),
+      h('div',{className:'sbar',style:{flex:1}},
+        h(Ico,{n:'search',sz:16,c:'#A89890'}),
+        h('input',{ref:ref,placeholder:'Buscar restaurante o platillo...',value:q,onInput:function(e){setQ(e.target.value)}}),
+        q&&h('button',{onClick:function(){setQ('')},style:{background:'none',border:'none',cursor:'pointer',display:'flex',padding:0}},h(Ico,{n:'close',sz:15,c:'#A89890'}))
+      )
+    ),
+    h('div',{className:'pb'},
+      h('div',{style:{padding:'11px 0 3px'}},
+        h('div',{style:{display:'flex',gap:8,overflowX:'auto',padding:'0 18px',scrollbarWidth:'none'}},
+          tags.map(function(t){return h('button',{key:t,className:'chip'+(tag===t?' on':''),onClick:function(){setTag(tag===t?'':t)}},t)})
+        )
+      ),
+      h('div',{style:{padding:'13px 18px'}},
+        h('div',{style:{fontSize:13,color:'#A89890',marginBottom:13}},res.length,' resultado',res.length!==1?'s':''),
+        h('div',{style:{display:'flex',flexDirection:'column',gap:13}},
+          res.map(function(r){return h(RestCard,{key:r.id,r:r,onClick:function(){p.nav('restaurant',r)}})})
+        ),
+        !res.length&&h('div',{style:{textAlign:'center',padding:'60px 0',color:'#A89890'}},
+          h('div',{style:{fontSize:50,marginBottom:14}},'🔍'),
+          h('div',{style:{fontSize:16,fontWeight:700,marginBottom:7,color:'#001621'}},'Sin resultados'),
+          h('div',{style:{fontSize:13}},'Intenta con otro término')
+        )
+      ),
+      h(CartFAB,{cart:p.cart,nav:p.nav})
+    )
+  );
+}
+
+/* MENU ITEM */
+function MItem(p){
+  var item=p.item,qty=p.qty;
+  return h('div',{style:{display:'flex',alignItems:'center',gap:11,padding:'11px',background:'#fff',borderRadius:12,border:'1px solid #EDE8E3'}},
+    item.photo ? h('img',{src:item.photo,style:{width:56,height:56,borderRadius:10,objectFit:'cover',flexShrink:0}}) : h('div',{style:{width:56,height:56,borderRadius:10,background:'#FFF2EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,flexShrink:0}},item.e),
+    h('div',{style:{flex:1,minWidth:0}},
+      h('div',{style:{fontSize:14,fontWeight:600,marginBottom:2}},item.name),
+      h('div',{style:{fontSize:12,color:'#A89890',marginBottom:4,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},item.desc),
+      h('div',{style:{fontSize:14,fontWeight:700,color:'#FF4103'}},'$',item.price,' MXN')
+    ),
+    qty>0
+      ?h('div',{className:'qc'},
+          h('button',{className:'qb',onClick:p.onRem,style:{fontSize:20}},'−'),
+          h('span',{className:'qn'},qty),
+          h('button',{className:'qb',onClick:p.onAdd,style:{fontSize:20}},'+')
+        )
+      :h('button',{onClick:p.onAdd,style:{width:34,height:34,borderRadius:9,background:'#FF4103',border:'none',color:'#fff',fontSize:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,flexShrink:0}},'+')
+  );
+}
+
+/* RESTAURANT */
+function Restaurant(p){
+  var r=p.r;
+  var _m=useState([]), menu=_m[0], setMenu=_m[1];
+  useEffect(function(){
+    fetch('http://localhost:3000/api/products?businessId='+r.id).then(function(res){return res.json()}).then(function(d){
+      var cats={};
+      d.forEach(function(pr){
+        var c=pr.cat||'General';
+        if(!cats[c]) cats[c]=[];
+        cats[c].push({id:pr.id,name:pr.name,desc:'',price:parseFloat(pr.price),e:'🍽️',restaurantName:r.name,restaurantId:r.id,photo:pr.photo});
+      });
+      setMenu(Object.keys(cats).map(function(k){return {cat:k, items:cats[k]}}));
+    });
+  },[r.id]);
+  var _t=useState('menu'),tab=_t[0],setTab=_t[1];
+  var cnt=p.cart.reduce(function(s,i){return s+i.qty},0);
+  var tot=p.cart.reduce(function(s,i){return s+i.price*i.qty},0);
+  return h('div',null,
+    h('div',{style:{height:195,background:r.banner?('url('+r.banner+') center/cover'):r.grad,fontSize:84,position:'relative',flexShrink:0}},
+      h('button',{className:'ibtn',onClick:p.back,style:{position:'absolute',top:46,left:14,background:'rgba(255,255,255,.92)'}},h(Ico,{n:'back',sz:18}))
+    ),
+    h('div',{className:'sh'},
+      r.logo?h('img',{src:r.logo,style:{position:'absolute',top:-30,left:'50%',transform:'translateX(-50%)',width:100,height:100,borderRadius:20,objectFit:'cover',border:'4px solid #fff',boxShadow:'0 4px 12px rgba(0,0,0,0.1)',background:'#fff',zIndex:10}}):h('div',{style:{position:'absolute',top:-30,left:'50%',transform:'translateX(-50%)',width:100,height:100,background:'#fff',borderRadius:20,display:'flex',alignItems:'center',justifyContent:'center',border:'4px solid #fff',boxShadow:'0 4px 12px rgba(0,0,0,0.1)',fontSize:64,zIndex:10}}, r.emoji),
+      h('div',{style:{padding:'56px 18px 0'}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:5}},
+          h('h1',{style:{fontSize:20,fontWeight:800}},r.name),
+          h('div',{style:{display:'flex',alignItems:'center',gap:3,fontSize:13,fontWeight:700,flexShrink:0}},
+            h('span',{style:{color:'#F5A623'}},'★'),r.rating,
+            h('span',{style:{fontWeight:400,color:'#A89890'}},'(',r.reviews,')')
+          )
+        ),
+        h('p',{style:{fontSize:13,color:'#6B5F58',lineHeight:1.5,marginBottom:11}},r.desc),
+        h('div',{style:{display:'flex',gap:14,fontSize:13,color:'#6B5F58',paddingBottom:13}},
+          h('span',null,'⏱ ',r.time,' min'),
+          h('span',null,'📦 Mín. $',r.min),
+          h('span',{style:{color:'#22A861',fontWeight:600}},'● Abierto')
+        ),
+        h('div',{style:{display:'flex',borderTop:'1px solid #EDE8E3'}},
+          ['menu','info'].map(function(t){
+            return h('button',{key:t,onClick:function(){setTab(t)},style:{flex:1,padding:'12px',border:'none',background:'none',fontFamily:'inherit',fontSize:14,fontWeight:600,cursor:'pointer',color:tab===t?'#FF4103':'#A89890',borderBottom:'2px solid '+(tab===t?'#FF4103':'transparent'),transition:'all .2s'}},
+              t==='menu'?'Menú':'Información'
+            );
+          })
+        )
+      )
+    ),
+    h('div',{className:'pb'},
+      tab==='menu'&&h('div',{style:{padding:'15px 18px'}},
+        menu.map(function(sec){
+          return h('div',{key:sec.cat,style:{marginBottom:22}},
+            h('div',{style:{fontSize:14,fontWeight:700,marginBottom:9,paddingBottom:7,borderBottom:'2px solid #EDE8E3'}},sec.cat),
+            h('div',{style:{display:'flex',flexDirection:'column',gap:9}},
+              sec.items.map(function(item){
+                var ic=p.cart.find(function(c){return c.id===item.id});
+                return h(MItem,{key:item.id,item:item,qty:ic?ic.qty:0,
+                  onAdd:function(){p.add(Object.assign({},item,{restaurantId:r.id,restaurantName:r.name}))},
+                  onRem:function(){p.rem(item.id)}
+                });
+              })
+            )
+          );
+        })
+      ),
+      tab==='info'&&h('div',{style:{padding:'18px'}},
+        h('div',{className:'card',style:{padding:'16px'}},
+          [['🏠 Dirección','Centro, Tampico, Tamaulipas'],['🕐 Horario','Lun – Dom  9:00 – 22:00 hrs'],['📦 Pedido mínimo','$'+r.min+' MXN'],['⭐ Calificación',r.rating+'/5 ('+r.reviews+' reseñas)']].map(function(kv){
+            return h('div',{key:kv[0],style:{padding:'9px 0',borderBottom:'1px solid #EDE8E3'}},
+              h('div',{style:{fontSize:11,color:'#A89890',marginBottom:2}},kv[0]),
+              h('div',{style:{fontSize:14,fontWeight:500}},kv[1])
+            );
+          })
+        )
+      ),
+      cnt>0&&h('div',{style:{padding:'0 18px 8px'}},
+        h('button',{className:'btn',onClick:function(){p.nav('cart')},style:{justifyContent:'space-between',padding:'14px 22px',boxShadow:'0 4px 20px rgba(255,65,3,.35)'}},
+          h('span',{className:'bdg',style:{background:'rgba(255,255,255,.25)'}},cnt),
+          h('span',null,'Ver carrito'),
+          h('span',null,'$',tot,' MXN')
+        )
+      )
+    )
+  );
+}
+
+/* CART */
+function Cart(p){
+  var cart=p.cart;
+  var sub=cart.reduce(function(s,i){return s+i.price*i.qty},0);
+  var tot=sub;
+  if(!cart.length){
+    return h('div',{style:{minHeight:'100vh',display:'flex',flexDirection:'column'}},
+      h('div',{className:'sh',style:{padding:'13px 15px',display:'flex',alignItems:'center',gap:11}},
+        h('button',{className:'ibtn',onClick:p.back},h(Ico,{n:'back',sz:18})),
+        h('span',{style:{fontSize:16,fontWeight:700}},'Mi carrito')
+      ),
+      h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:40,textAlign:'center'}},
+        h('div',{style:{fontSize:68,marginBottom:18}},'🛒'),
+        h('div',{style:{fontSize:19,fontWeight:800,marginBottom:8}},'Carrito vacío'),
+        h('div',{style:{fontSize:14,color:'#A89890',marginBottom:28,lineHeight:1.6}},'Agrega platillos desde el menú de tu restaurante favorito'),
+        h('button',{className:'btn',onClick:p.back,style:{width:'auto',padding:'13px 28px'}},'Explorar restaurantes')
+      )
+    );
+  }
+  var rn=cart[0]&&cart[0].restaurantName;
+  return h('div',null,
+    h('div',{className:'sh',style:{padding:'13px 15px',display:'flex',alignItems:'center',gap:11}},
+      h('button',{className:'ibtn',onClick:p.back},h(Ico,{n:'back',sz:18})),
+      h('div',{style:{flex:1}},
+        h('div',{style:{fontSize:16,fontWeight:700}},'Mi carrito'),
+        h('div',{style:{fontSize:12,color:'#A89890'}},rn)
+      )
+    ),
+    h('div',{className:'pb'},
+      h('div',{style:{padding:'15px 18px'}},
+        cart.map(function(item){
+          return h('div',{key:item.id,style:{display:'flex',alignItems:'center',gap:11,padding:'13px 0',borderBottom:'1px solid #EDE8E3'}},
+            item.photo ? h('img',{src:item.photo,style:{width:48,height:48,borderRadius:9,objectFit:'cover',flexShrink:0}}) : h('div',{style:{width:48,height:48,borderRadius:9,background:'#FFF2EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}},item.e),
+            h('div',{style:{flex:1}},
+              h('div',{style:{fontSize:14,fontWeight:600}},item.name),
+              h('div',{style:{fontSize:13,color:'#FF4103',fontWeight:700}},'$',item.price,' MXN')
+            ),
+            h('div',{className:'qc'},
+              h('button',{className:'qb',onClick:function(){p.upd(item.id,item.qty-1)},style:{fontSize:20}},'−'),
+              h('span',{className:'qn'},item.qty),
+              h('button',{className:'qb',onClick:function(){p.upd(item.id,item.qty+1)},style:{fontSize:20}},'+')
+            )
+          );
+        }),
+        h('div',{style:{marginTop:18,marginBottom:18}},
+          h('div',{style:{fontSize:14,fontWeight:600,marginBottom:7}},'Nota para el restaurante'),
+          h('textarea',{className:'inp',placeholder:'Sin cebolla, extra salsa...',style:{resize:'none',height:68}})
+        ),
+        h('div',{className:'card',style:{padding:'15px'}},
+          h('div',{style:{fontSize:14,fontWeight:700,marginBottom:12}},'Resumen del pedido'),
+          h('div',{style:{display:'flex',justifyContent:'space-between',fontSize:14,marginBottom:9}},
+            h('span',{style:{color:'#6B5F58'}},'Subtotal'),h('span',{style:{fontWeight:600}},'$',sub,' MXN')
+          ),
+          h('div',{className:'dv',style:{margin:'9px 0'}}),
+          h('div',{style:{display:'flex',justifyContent:'space-between',fontSize:15,fontWeight:700}},
+            h('span',null,'Total'),h('span',{style:{color:'#FF4103'}},'$',tot,' MXN')
+          )
+        )
+      )
+    ),
+    h('div',{style:{position:'sticky',bottom:0,background:'#fff',borderTop:'1px solid #EDE8E3',padding:'11px 18px 18px',zIndex:90}},
+      h('button',{className:'btn',onClick:function(){p.nav('checkout',{tot:tot,sub:sub})}},'Ir al checkout · $',tot,' MXN')
+    )
+  );
+}
+
+/* CHECKOUT */
+function Checkout(p){
+  var _pm=useState('Efectivo'),pm=_pm[0],setPm=_pm[1];
+  var _nm=useState(''),nm=_nm[0],setNm=_nm[1];
+  var _ph=useState(''),ph=_ph[0],setPh=_ph[1];
+  var _ad=useState(''),ad=_ad[0],setAd=_ad[1];
+  var _al=useState(false),adLoad=_al[0],setAdLoad=_al[1];
+  var _crd=useState(null),crd=_crd[0],setCrd=_crd[1];
+  var _ld=useState(false),load=_ld[0],setLoad=_ld[1];
+  var tot=(p.od&&p.od.tot)||0;
+  var pms=[{id:'Efectivo',l:'Efectivo',e:'💵'},{id:'Tarjeta',l:'Terminal',e:'💳'},{id:'Acordar con negocio',l:'Acordar',e:'💬'}];
+
+  function getLoc(){
+    if(!navigator.geolocation) return alert('Geolocalización no soportada');
+    setAdLoad(true);
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat=pos.coords.latitude, lon=pos.coords.longitude;
+      setCrd({lat:lat, lon:lon});
+      fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lon)
+      .then(function(r){return r.json()})
+      .then(function(d){
+        var a=d.address;
+        var str=((a.road||'')+' '+(a.house_number||'')+', '+(a.suburb||a.neighbourhood||'')+', '+(a.city||a.town||a.village||'')).replace(/ ,/g,',').replace(/^, | , $/g,'').replace(/,,/g,',').trim();
+        if(str.endsWith(',')) str=str.slice(0,-1);
+        setAd(str);
+        setAdLoad(false);
+      }).catch(function(){setAdLoad(false);alert('Error al obtener dirección');});
+    },function(){setAdLoad(false);alert('Permiso denegado o error de GPS');});
+  }
+
+  function go(){
+    if(!nm.trim()||!ph.trim()||!ad.trim()){alert('Por favor completa nombre, teléfono y dirección.');return;}
+    setLoad(true);
+    var locStr = "\n📍 *Dirección:* " + ad;
+    if(crd) locStr += "\n🗺️ *Mapa:* https://maps.google.com/?q="+crd.lat+","+crd.lon;
+    var orderText = "🛍️ *Nuevo pedido en Cravi*\n\n*Cliente:* " + nm + "\n📞 " + ph + locStr + "\n💳 *Pago:* " + pm + "\n\n*Artículos:*\n" + p.cart.map(function(i){return "• " + i.qty + "x " + i.name + " — $" + (i.price*i.qty)}).join("\n") + "\n\n✅ *TOTAL: $" + tot + " MXN*";
+    fetch('http://localhost:3000/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: '5210000000000', message: orderText, businessId: p.cart[0] && p.cart[0].restaurantId })
+    }).then(function(){
+      setLoad(false); p.nav('tracking');
+    }).catch(function(){
+      setLoad(false); p.nav('tracking'); // Fallback para MVP
+    });
+  }
+  return h('div',null,
+    h('div',{className:'sh',style:{padding:'13px 15px',display:'flex',alignItems:'center',gap:11}},
+      h('button',{className:'ibtn',onClick:p.back},h(Ico,{n:'back',sz:18})),
+      h('span',{style:{fontSize:16,fontWeight:700}},'Confirmar pedido')
+    ),
+    h('div',{className:'pb'},
+      h('div',{style:{padding:'18px',display:'flex',flexDirection:'column',gap:20}},
+        h('div',null,
+          h('div',{style:{fontSize:14,fontWeight:700,marginBottom:10}},'📋 Datos de contacto'),
+          h('div',{style:{display:'flex',flexDirection:'column',gap:9}},
+            h('input',{className:'inp',placeholder:'Nombre completo *',value:nm,onInput:function(e){setNm(e.target.value)}}),
+            h('input',{className:'inp',placeholder:'Teléfono de contacto *',type:'tel',value:ph,onInput:function(e){setPh(e.target.value)}})
+          )
+        ),
+        h('div',null,
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}},
+            h('div',{style:{fontSize:14,fontWeight:700}},'📍 Dirección de entrega'),
+            h('button',{onClick:getLoc,style:{background:'none',border:'none',color:'#FF4103',fontSize:13,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:4}},'🎯 Usar mi ubicación')
+          ),
+          h('div',{style:{fontSize:12,color:'#A89890',marginBottom:9,padding:'5px 10px',background:'#FFF2EE',borderRadius:8}},'ℹ️ La entrega corre a cargo del restaurante'),
+          h('textarea',{className:'inp',placeholder:adLoad?'Obteniendo ubicación...':'Calle, número, colonia, referencias...',value:ad,onInput:function(e){setAd(e.target.value)},style:{resize:'none',height:72},disabled:adLoad})
+        ),
+        h('div',null,
+          h('div',{style:{fontSize:14,fontWeight:700,marginBottom:4}},'💳 ¿Cómo pagarás al recibir?'),
+          h('div',{style:{fontSize:12,color:'#A89890',marginBottom:9,padding:'5px 10px',background:'#FFF2EE',borderRadius:8}},'ℹ️ El pago se realiza directamente al negocio en la entrega. No hacemos cobros en la app.'),
+          h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:9}},
+            pms.map(function(mp){
+              return h('button',{key:mp.id,onClick:function(){setPm(mp.id)},style:{padding:'13px 7px',borderRadius:11,border:'2px solid '+(pm===mp.id?'#FF4103':'#EDE8E3'),background:pm===mp.id?'#FFF2EE':'#fff',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:5,fontFamily:'inherit',transition:'all .15s'}},
+                h('span',{style:{fontSize:22}},mp.e),
+                h('span',{style:{fontSize:12,fontWeight:600,color:pm===mp.id?'#FF4103':'#6B5F58'}},mp.l)
+              );
+            })
+          )
+        ),
+        h('div',{className:'card',style:{padding:'15px'}},
+          h('div',{style:{fontSize:14,fontWeight:700,marginBottom:10}},'Resumen'),
+          p.cart.slice(0,3).map(function(i){
+            return h('div',{key:i.id,style:{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:7,color:'#6B5F58'}},
+              h('span',null,i.qty,'× ',i.name),h('span',null,'$',i.price*i.qty,' MXN')
+            );
+          }),
+          p.cart.length>3&&h('div',{style:{fontSize:12,color:'#A89890',marginBottom:7}},'+',p.cart.length-3,' más...'),
+          h('div',{className:'dv',style:{margin:'9px 0'}}),
+          h('div',{style:{display:'flex',justifyContent:'space-between',fontWeight:700,fontSize:15}},
+            h('span',null,'Total'),h('span',{style:{color:'#FF4103'}},'$',tot,' MXN')
+          )
+        )
+      )
+    ),
+    h('div',{style:{position:'sticky',bottom:0,background:'#fff',borderTop:'1px solid #EDE8E3',padding:'11px 18px 18px',zIndex:90}},
+      h('button',{className:'btn',onClick:go,style:{opacity:load?.7:1}},
+        load?'⏳ Confirmando pedido...':'Confirmar pedido · $'+tot+' MXN'
+      )
+    )
+  );
+}
+
+/* TRACKING */
+function Tracking(p){
+  var _s=useState(1),step=_s[0],setStep=_s[1];
+  var _t=useState(0),tk=_t[0],setTk=_t[1];
+  var rn=(p.cart[0]&&p.cart[0].restaurantName)||'Tacos El Güero';
+  var oid='#MNV'+(0|1000+Math.random()*9000);
+  useEffect(function(){
+    var t=setInterval(function(){
+      setTk(function(n){
+        var nx=n+1;
+        if(nx===10)setStep(2);
+        if(nx===22)setStep(3);
+        if(nx===38)setStep(4);
+        return nx;
+      });
+    },500);
+    return function(){clearInterval(t)};
+  },[]);
+  var eta=Math.max(2,28-(0|tk*.5));
+  var steps=[
+    {l:'Pedido recibido',d:'Tu orden fue confirmada',e:'✓'},
+    {l:'Preparando',d:'El restaurante prepara tu orden',e:'👨‍🍳'},
+    {l:'Listo para entregar',d:'Tu pedido está listo',e:'✅'},
+    {l:'En camino',d:'El repartidor va hacia ti',e:'🛵'},
+    {l:'Entregado',d:'¡Buen provecho! 🎉',e:'🎉'},
+  ];
+  return h('div',null,
+    h('div',{className:'sh',style:{padding:'13px 15px',display:'flex',alignItems:'center',gap:11}},
+      h('div',{style:{flex:1}},
+        h('div',{style:{fontSize:16,fontWeight:700}},'Seguimiento'),
+        h('div',{style:{fontSize:12,color:'#A89890'}},oid,' · ',rn)
+      ),
+      h('button',{className:'ibtn',onClick:function(){p.nav('home')}},h(Ico,{n:'close',sz:18}))
+    ),
+    h('div',{className:'pb'},
+      h('div',{style:{margin:'16px 18px 0',padding:'18px',background:'linear-gradient(135deg,#FF9A3C,#FF4103)',borderRadius:14,textAlign:'center'}},
+        step<4
+          ?[h('div',{key:'l',style:{fontSize:12,color:'rgba(255,255,255,.85)',marginBottom:3}},'Tiempo estimado'),
+            h('div',{key:'n',style:{fontSize:50,fontWeight:800,color:'#fff',lineHeight:1}},eta),
+            h('div',{key:'m',style:{fontSize:14,color:'rgba(255,255,255,.85)'}},'minutos')]
+          :[h('div',{key:'e',style:{fontSize:48}},'🎉'),
+            h('div',{key:'t',style:{fontSize:16,fontWeight:700,color:'#fff',marginTop:3}},'¡Pedido entregado!')]
+      ),
+      h('div',{style:{padding:'20px 18px 0'}},
+        h('div',{style:{fontSize:14,fontWeight:700,marginBottom:13}},'Estado del pedido'),
+        h('div',{className:'card',style:{padding:'15px'}},
+          steps.map(function(s,i){
+            var cls='sdot '+(i<step?'dn':i===step?'cu':'pe')+(i===step&&step<4?' pu':'');
+            return h('div',{key:i},
+              h('div',{style:{display:'flex',alignItems:'flex-start',gap:11,padding:'7px 0'}},
+                h('div',{className:cls},i<step?'✓':s.e),
+                h('div',{style:{flex:1,paddingTop:1}},
+                  h('div',{style:{fontSize:14,fontWeight:i<=step?700:500,color:i<=step?'#001621':'#A89890'}},s.l),
+                  h('div',{style:{fontSize:12,color:i<=step?'#6B5F58':'#C4B8B0',marginTop:2}},s.d)
+                )
+              ),
+              i<steps.length-1&&h('div',{className:'sln '+(i<step?'dn':'pe')})
+            );
+          })
+        )
+      ),
+      h('div',{style:{padding:'14px 18px 0'}},
+        h('div',{className:'card',style:{padding:'14px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('div',null,
+            h('div',{style:{fontSize:14,fontWeight:700}},rn),
+            h('div',{style:{fontSize:12,color:'#A89890'}},'¿Alguna duda?')
+          ),
+          h('button',{style:{display:'flex',alignItems:'center',gap:6,padding:'9px 14px',background:'#E8F5E9',border:'none',borderRadius:100,cursor:'pointer',color:'#22A861',fontSize:13,fontWeight:600,fontFamily:'inherit'}},
+            h(Ico,{n:'phone',sz:13,c:'#22A861'}),' Llamar'
+          )
+        )
+      ),
+      step>=4&&h('div',{style:{padding:'16px 18px 0'}},
+        h('button',{className:'btn',onClick:function(){p.nav('home')}},'Volver al inicio 🏠')
+      )
+    )
+  );
+}
+
+/* ORDERS */
+function Orders(p){
+  var ords=[
+    {r:'Tacos El Güero',e:'🌮',d:'3 tacos al pastor, 2 aguas',t:125,dt:'Hoy, 14:32'},
+    {r:'La Burguesía',e:'🍔',d:'Classic Smash, Papas Fritas',t:155,dt:'Ayer, 20:15'},
+    {r:'Pizza Roma',e:'🍕',d:'Margherita familiar',t:170,dt:'14 Abr'},
+    {r:'Sushi Fusion',e:'🍣',d:'Dragon Roll, Edamame',t:240,dt:'10 Abr'},
+  ];
+  return h('div',null,
+    h('div',{className:'sh',style:{padding:'13px 18px'}},h('span',{style:{fontSize:16,fontWeight:700}},'Mis pedidos')),
+    h('div',{className:'pb',style:{padding:'14px 18px',display:'flex',flexDirection:'column',gap:11}},
+      ords.map(function(o,i){
+        return h('div',{key:i,className:'card',style:{padding:'14px',cursor:'pointer'},onClick:function(){p.nav('tracking')}},
+          h('div',{style:{display:'flex',alignItems:'center',gap:11,marginBottom:9}},
+            h('div',{style:{width:42,height:42,borderRadius:11,background:'#FFF2EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}},o.e),
+            h('div',{style:{flex:1}},
+              h('div',{style:{fontSize:14,fontWeight:700}},o.r),
+              h('div',{style:{fontSize:12,color:'#A89890'}},o.dt)
+            ),
+            h('span',{style:{fontSize:12,background:'#E8F5E9',color:'#22A861',padding:'3px 10px',borderRadius:100,fontWeight:600}},'Entregado')
+          ),
+          h('div',{style:{fontSize:13,color:'#6B5F58',marginBottom:9}},o.d),
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+            h('span',{style:{fontSize:14,fontWeight:700,color:'#FF4103'}},'$',o.t,' MXN'),
+            h('span',{style:{fontSize:13,color:'#A89890'}},'Ver detalle →')
+          )
+        );
+      })
+    )
+  );
+}
+
+/* PROFILE */
+function Profile(p){
+  var opts=[
+    {e:'📦',l:'Mis pedidos',s:'Ver historial de órdenes',fn:function(){p.nav('orders')}},
+    {e:'📍',l:'Mis direcciones',s:'Gestionar direcciones guardadas',fn:function(){}},
+    {e:'💳',l:'Métodos de pago',s:'Tarjetas y transferencias',fn:function(){}},
+    {e:'🔔',l:'Notificaciones',s:'Configurar alertas',fn:function(){}},
+    {e:'❓',l:'Ayuda y soporte',s:'Preguntas frecuentes',fn:function(){}},
+  ];
+  return h('div',null,
+    h('div',{className:'sh',style:{padding:'13px 18px'}},h('span',{style:{fontSize:16,fontWeight:700}},'Mi perfil')),
+    h('div',{className:'pb'},
+      h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',gap:9,padding:'24px 18px 18px'}},
+        h('div',{style:{width:76,height:76,borderRadius:'50%',background:'linear-gradient(135deg,#FF9A3C,#FF4103)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:32}},'👤'),
+        h('div',{style:{fontSize:18,fontWeight:800}},'Mi cuenta'),
+        h('div',{style:{fontSize:13,color:'#A89890'}},'tampico@cravi.mx'),
+        h('div',{style:{display:'flex',gap:18,marginTop:6}},
+          [['4','Pedidos'],['2','Favs'],['1','Dir']].map(function(nv){
+            return h('div',{key:nv[1],style:{textAlign:'center'}},
+              h('div',{style:{fontSize:19,fontWeight:800,color:'#FF4103'}},nv[0]),
+              h('div',{style:{fontSize:11,color:'#A89890'}},nv[1])
+            );
+          })
+        )
+      ),
+      h('div',{style:{padding:'0 18px',display:'flex',flexDirection:'column',gap:9}},
+        opts.map(function(o,i){
+          return h('div',{key:i,style:{display:'flex',alignItems:'center',gap:13,padding:'13px 14px',background:'#fff',borderRadius:13,border:'1px solid #EDE8E3',cursor:'pointer'},onClick:o.fn},
+            h('div',{style:{width:40,height:40,borderRadius:11,background:'#FFF2EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:19,flexShrink:0}},o.e),
+            h('div',{style:{flex:1}},
+              h('div',{style:{fontSize:14,fontWeight:600}},o.l),
+              h('div',{style:{fontSize:12,color:'#A89890'}},o.s)
+            ),
+            h(Ico,{n:'chev',sz:15,c:'#A89890'})
+          );
+        }),
+        h('div',{style:{textAlign:'center',padding:'14px 0',fontSize:12,color:'#C4B8B0'}},'cravi v1.0 · Tampico, Tamaulipas')
+      )
+    )
+  );
+}
+
+/* BOTTOM NAV */
+function BNav(p){
+  if(p.sc==='onboarding')return null;
+  var tabs=[{id:'home',l:'Inicio',n:'home'},{id:'search',l:'Buscar',n:'search'},{id:'orders',l:'Pedidos',n:'orders'},{id:'profile',l:'Perfil',n:'profile'}];
+  return h('nav',{className:'bnav'},
+    tabs.map(function(t){
+      return h('button',{key:t.id,className:'ni'+(p.sc===t.id?' on':''),onClick:function(){p.go(t.id)}},
+        h('div',{style:{position:'relative',display:'flex'}},
+          h(Ico,{n:t.n,sz:22,c:p.sc===t.id?'#FF4103':'#A89890'}),
+          t.id==='orders'&&p.cnt>0&&h('span',{className:'bdg',style:{position:'absolute',top:-6,right:-10,fontSize:10,padding:'1px 5px'}},p.cnt)
+        ),
+        h('span',{className:'nl'},t.l)
+      );
+    })
+  );
+}
+
+/* APP */
+function App(){
+  var _rs=useState([]),rests=_rs[0],setRests=_rs[1];
+  useEffect(function(){
+    fetch('http://localhost:3000/api/businesses')
+    .then(function(r){return r.json()})
+    .then(function(d){
+      setRests(d.map(function(b){
+        return {
+          id: b.id, name: b.bizName, cat: b.bizCat, emoji: '🏪',
+          grad: 'linear-gradient(135deg,'+(b.bizColor||'#FF4103')+'cc,'+(b.bizColor||'#FF4103')+')',
+          logo: b.logoPreview, banner: b.bannerPreview,
+          rating: 5.0, reviews: 1, time: b.bizTime||'20-30', min: parseInt(b.bizMin)||0, tag: 'Nuevo',
+          desc: b.bizDesc || '', menu: []
+        };
+      }));
+    });
+  },[]);
+  var _sc=useState('onboarding'),sc=_sc[0],setSc=_sc[1];
+  var _hi=useState([]),hist=_hi[0],setHist=_hi[1];
+  var _ca=useState([]),cart=_ca[0],setCart=_ca[1];
+  var _re=useState(null),rest=_re[0],setRest=_re[1];
+  var _od=useState(null),od=_od[0],setOd=_od[1];
+  var cnt=cart.reduce(function(s,i){return s+i.qty},0);
+
+  function nav(to,p){
+    setHist(function(h){return h.concat([sc])});
+    if(to==='restaurant'&&p)setRest(p);
+    if(to==='checkout'&&p)setOd(p);
+    if(to==='tracking')setCart([]);
+    setSc(to);
+  }
+  function back(){
+    var p=hist[hist.length-1]||'home';
+    setHist(function(h){return h.slice(0,-1)});
+    setSc(p);
+  }
+  function go(to){setHist([]);setSc(to);}
+  function add(item){
+    setCart(function(c){
+      var e=c.find(function(i){return i.id===item.id});
+      if(e)return c.map(function(i){return i.id===item.id?Object.assign({},i,{qty:i.qty+1}):i});
+      return c.concat([Object.assign({},item,{qty:1})]);
+    });
+  }
+  function rem(id){
+    setCart(function(c){
+      var e=c.find(function(i){return i.id===id});
+      if(!e)return c;
+      if(e.qty<=1)return c.filter(function(i){return i.id!==id});
+      return c.map(function(i){return i.id===id?Object.assign({},i,{qty:i.qty-1}):i});
+    });
+  }
+  function upd(id,qty){
+    if(qty<=0)setCart(function(c){return c.filter(function(i){return i.id!==id})});
+    else setCart(function(c){return c.map(function(i){return i.id===id?Object.assign({},i,{qty:qty}):i})});
+  }
+
+  var screens={
+    onboarding:h(Onboarding,{done:function(){go('home')}}),
+    home:h(Home,{nav:nav,cart:cart,rests:rests}),
+    search:h(Search,{nav:nav,back:back,cart:cart,rests:rests}),
+    restaurant:rest?h(Restaurant,{r:rest,nav:nav,back:back,cart:cart,add:add,rem:rem}):null,
+    cart:h(Cart,{cart:cart,upd:upd,nav:nav,back:back}),
+    checkout:h(Checkout,{cart:cart,od:od,nav:nav,back:back}),
+    tracking:h(Tracking,{nav:nav,cart:cart}),
+    orders:h(Orders,{nav:nav}),
+    profile:h(Profile,{nav:nav}),
+  };
+
+  return h('div',{style:{position:'relative',height:'100vh',overflow:'hidden'}},
+    Object.keys(screens).map(function(k){
+      var comp=screens[k];
+      if(!comp)return null;
+      return h('div',{key:k,className:'wrap'+(sc===k?'':' hide')},comp);
+    }),
+    h(BNav,{sc:sc,go:go,cnt:cnt})
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App,null));
+})();
+</script>
+</body>
+</html>
