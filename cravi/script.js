@@ -72,9 +72,9 @@ const initForm = () => {
         document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
 
         if (mode === 'customer') {
-            formTitle.textContent = 'Únete a la lista de espera exclusiva';
-            formValueProp.textContent = 'Sé de los primeros 100 y obtén un 30% de descuento en tu primer pedido y acceso a eventos exclusivos.';
-            submitBtn.textContent = 'Inscribirme a la lista de espera';
+            formTitle.textContent = 'Únete a la lista exclusiva';
+            formValueProp.textContent = 'Sé de los primeros 100 y obtén beneficios exclusivos en el lanzamiento.';
+            submitBtn.textContent = 'Registrarme ahora';
             dynamicFields.innerHTML = `
                 <div class="input-group">
                     <label>Nombre completo</label>
@@ -88,15 +88,11 @@ const initForm = () => {
                     <label>Teléfono (opcional)</label>
                     <input type="tel" name="phone" placeholder="833 000 0000">
                 </div>
-                <div class="input-group">
-                    <label>Código Postal (opcional)</label>
-                    <input type="text" name="zip" placeholder="89000">
-                </div>
             `;
         } else {
-            formTitle.textContent = 'Registra tu negocio hoy';
-            formValueProp.textContent = 'Recibe tarifas de lanzamiento preferenciales y prioridad en el posicionamiento de la plataforma.';
-            submitBtn.textContent = 'Solicitar registro de mi negocio';
+            formTitle.textContent = 'Registra tu negocio';
+            formValueProp.textContent = 'Recibe prioridad en el posicionamiento y beneficios de lanzamiento.';
+            submitBtn.textContent = 'Enviar solicitud';
             dynamicFields.innerHTML = `
                 <div class="input-group">
                     <label>Nombre del Negocio</label>

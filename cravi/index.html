@@ -12,52 +12,59 @@
 </head>
 <body>
     <canvas id="canvas-particles"></canvas>
-    <div class="smoke-overlay"></div>
 
     <header>
         <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-            <img src="hero-isotype.png" alt="Cravi Logo" class="logo">
-            <nav class="footer-links" style="margin-bottom: 0;">
-                <a href="#waitlist">Para Comensales</a>
-                <a href="#waitlist">Para Negocios</a>
+            <img src="logo.png" alt="Cravi Logo" class="logo">
+            <nav class="footer-links" style="display: flex; align-items: center; gap: 1rem;">
+                <a href="#waitlist">Comensales</a>
+                <a href="#waitlist">Negocios</a>
+                <a href="#waitlist" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Unirme</a>
             </nav>
         </div>
     </header>
 
     <main>
         <section class="hero">
-            <div class="container hero-content">
-                <video autoplay muted loop playsinline class="hero-isotype">
-                    <source src="mp_.mp4" type="video/mp4">
-                    Tu navegador no soporta video.
-                </video>
-                <h1>Algo se está <span class="highlight">cocinando...</span> 👀</h1>
-                <h2>Cravi: La nueva experiencia gastronómica está por llegar a Pánuco. Prepárate para descubrir algo superior.</h2>
-                <div class="cta-group">
-                    <a href="#waitlist" class="btn btn-primary">Quiero ser de los primeros</a>
-                    <a href="#waitlist" class="btn btn-secondary" onclick="document.querySelector('[data-mode=\'business\']').click()">Registrar mi negocio</a>
+            <div class="container hero-grid">
+                <div class="hero-content">
+                    <h1>La nueva era del delivery en <span class="highlight">Pánuco</span></h1>
+                    <p class="hero-desc">Cravi está llegando para transformar tu forma de disfrutar la ciudad. Los mejores sabores, con la tecnología que mereces.</p>
+                    <div class="cta-group">
+                        <a href="#waitlist" class="btn btn-primary">Obtener acceso temprano</a>
+                        <a href="#waitlist" class="btn btn-secondary" onclick="document.querySelector('[data-mode=\'business\']').click()">Registrar mi negocio</a>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <video autoplay muted loop playsinline class="hero-isotype">
+                        <source src="mp_.mp4" type="video/mp4">
+                        Tu navegador no soporta video.
+                    </video>
                 </div>
             </div>
         </section>
 
         <section class="features">
             <div class="container">
-                <h2 style="text-align: center; color: white; font-size: 2rem; margin-bottom: 4rem;">No es solo delivery. Es una nueva forma de disfrutar Pánuco.</h2>
+                <div style="text-align: center; margin-bottom: 4rem;">
+                    <h2 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 1rem;">Diseñado para ser superior</h2>
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">Nuestra plataforma se enfoca en tres pilares fundamentales.</p>
+                </div>
                 <div class="features-grid">
                     <div class="feature-card">
                         <div class="feature-icon"><i class="fas fa-location-dot"></i></div>
                         <h3>Local</h3>
-                        <p>Selección curada de los mejores restaurantes de tu ciudad.</p>
+                        <p>Apoyamos el comercio de Pánuco conectándote con los mejores establecimientos locales.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon"><i class="fas fa-gem"></i></div>
                         <h3>Premium</h3>
-                        <p>Experiencia de usuario y servicio de primer nivel.</p>
+                        <p>Una interfaz intuitiva, limpia y rápida diseñada para que tu única preocupación sea qué comer.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon"><i class="fas fa-bolt"></i></div>
                         <h3>Rápido</h3>
-                        <p>Disfruta el sabor, sin esperas innecesarias.</p>
+                        <p>Logística inteligente para asegurar que tus pedidos lleguen siempre en el mejor tiempo.</p>
                     </div>
                 </div>
             </div>
@@ -71,12 +78,11 @@
                         <button class="toggle-btn" data-mode="business">Tengo un Negocio</button>
                     </div>
                     
-                    <h3 id="form-title" style="font-size: 1.75rem; margin-bottom: 1rem; text-align: center;">Únete a la lista de espera exclusiva</h3>
-                    <p id="form-value-prop" style="text-align: center; color: var(--text-dim); margin-bottom: 2rem;">Sé de los primeros 100 y obtén un 30% de descuento en tu primer pedido y acceso a eventos exclusivos.</p>
+                    <h3 id="form-title" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.75rem; text-align: center;">Únete a la lista exclusiva</h3>
+                    <p id="form-value-prop" style="text-align: center; color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">Sé de los primeros 100 y obtén beneficios exclusivos en el lanzamiento.</p>
 
                     <form id="waitlist-form">
                         <div id="dynamic-fields">
-                            <!-- Injected by JS -->
                             <div class="input-group">
                                 <label>Nombre completo</label>
                                 <input type="text" name="name" placeholder="Ej. Juan Pérez" required>
@@ -89,10 +95,10 @@
 
                         <div class="checkbox-group">
                             <input type="checkbox" id="terms" required>
-                            <label for="terms">Acepto los términos y condiciones y la política de privacidad.</label>
+                            <label for="terms">Acepto los términos y condiciones.</label>
                         </div>
 
-                        <button type="submit" id="submit-btn" class="btn btn-primary" style="width: 100%;">Inscribirme a la lista de espera</button>
+                        <button type="submit" id="submit-btn" class="btn btn-primary" style="width: 100%;">Registrarme ahora</button>
                     </form>
                 </div>
             </div>
@@ -101,21 +107,13 @@
 
     <footer>
         <div class="container">
-            <img src="hero-isotype.png" alt="Cravi Logo" style="height: 30px; opacity: 0.5; margin-bottom: 1rem;">
-            <p style="color: var(--text-dim); font-size: 0.9rem;">Cravi © 2024 - Todos los derechos reservados.</p>
-            
-            <div class="social-links">
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-facebook"></i></a>
-                <a href="#"><i class="fab fa-x-twitter"></i></a>
+            <img src="logo.png" alt="Cravi Logo" style="height: 24px; margin-bottom: 1.5rem; opacity: 0.8;">
+            <div class="footer-links" style="margin-bottom: 2rem;">
+                <a href="#">Términos</a>
+                <a href="#">Privacidad</a>
+                <a href="mailto:contacto@cravi.app">Contacto</a>
             </div>
-
-            <div class="footer-links">
-                <a href="#">Términos y Condiciones</a>
-                <a href="#">Política de Privacidad</a>
-            </nav>
-
-            <p class="support-email">¿Tienes preguntas? <a href="mailto:contacto@cravi.app" style="color: var(--primary); text-decoration: none;">contacto@cravi.app</a></p>
+            <p style="color: var(--text-dim); font-size: 0.85rem;">Cravi © 2024 - Pánuco, Veracruz.</p>
         </div>
     </footer>
 
