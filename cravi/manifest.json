@@ -1,0 +1,23 @@
+{
+  "name": "Cravi",
+  "short_name": "Cravi",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#FFFBF8",
+  "theme_color": "#FF4103",
+  "description": "Plataforma de pedidos locales en Tampico",
+  "icons": [
+    {
+      "src": "logo C/cravi-icon-orange-192px.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo C/cravi-icon-orange-512px.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

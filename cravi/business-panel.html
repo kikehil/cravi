@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cravi · Panel de Negocio</title>
+<link rel="icon" type="image/svg+xml" href="logo C/cravi-icon.svg">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#FF4103;--pl:#FFF2EE;--pd:#CC3302;
+  --dark:#001621;--dark2:#002233;--dark3:#003044;
+  --bg:#F7F4F1;--sf:#fff;--bd:#E8E3DE;
+  --t:#001621;--t2:#5C5650;--t3:#A89890;
+  --gr:#22A861;--grl:#E8F5E9;
+  --warn:#F59E0B;--warnl:#FFFBEB;
+  --sidebar:240px;
+}
+html,body{height:100%;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:14px;color:var(--t);-webkit-font-smoothing:antialiased;background:var(--bg)}
+
+/* ── LAYOUT ── */
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sidebar);background:var(--dark);display:flex;flex-direction:column;flex-shrink:0;position:relative;overflow:hidden}
+.sidebar::before{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:var(--p);opacity:.05;top:-100px;right:-100px;pointer-events:none}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--sf);border-bottom:1px solid var(--bd);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:28px}
+
+/* ── SIDEBAR ── */
+.sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-logo img{height:28px;width:auto}
+.sb-biz{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-biz-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-biz-plan{display:inline-flex;align-items:center;gap:5px;background:rgba(255,65,3,.2);color:#FF8A65;font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;margin-top:4px}
+.sb-status{display:flex;align-items:center;gap:7px;margin-top:10px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--gr);box-shadow:0 0 0 3px rgba(34,168,97,.25)}
+.status-dot.off{background:#888;box-shadow:none}
+.status-label{font-size:12px;color:rgba(255,255,255,.45);font-weight:500}
+.sb-nav{padding:16px 12px;flex:1;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all .15s;color:rgba(255,255,255,.45);font-size:13px;font-weight:600;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.75)}
+.nav-item.active{background:rgba(255,65,3,.18);color:#fff}
+.nav-item.active .nav-icon{color:var(--p)}
+.nav-icon{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.nav-badge{margin-left:auto;background:var(--p);color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:100px;min-width:18px;text-align:center}
+.sb-bottom{padding:16px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-user{display:flex;align-items:center;gap:10px}
+.sb-avatar{width:32px;height:32px;border-radius:50%;background:var(--p);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+.sb-user-info{flex:1;min-width:0}
+.sb-user-name{font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-role{font-size:11px;color:rgba(255,255,255,.35)}
+
+/* ── TOPBAR ── */
+.tb-left{display:flex;align-items:center;gap:16px}
+.tb-title{font-size:16px;font-weight:800;color:var(--t)}
+.tb-date{font-size:13px;color:var(--t3);font-weight:500}
+.tb-right{display:flex;align-items:center;gap:12px}
+.tb-btn{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--bd);background:var(--sf);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:border-color .15s}
+.tb-btn:hover{border-color:var(--t3)}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--p);border-radius:50%;border:2px solid var(--sf);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff}
+.open-badge{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:100px;background:var(--grl);color:var(--gr);font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.open-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--gr)}
+
+/* ── SCREENS ── */
+.screen{display:none}
+.screen.active{display:block}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.kpi{background:var(--sf);border-radius:14px;border:1px solid var(--bd);padding:20px;position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.07)}
+.kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px}
+.kpi-label{font-size:12px;color:var(--t3);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.kpi-value{font-size:28px;font-weight:800;color:var(--t);line-height:1;margin-bottom:6px}
+.kpi-delta{font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px}
+.kpi-delta.up{color:var(--gr)}
+.kpi-delta.down{color:#E53935}
+.kpi-delta.neutral{color:var(--t3)}
+.kpi::after{content:'';position:absolute;right:-16px;bottom:-16px;width:80px;height:80px;border-radius:50%;opacity:.06}
+.kpi-orange .kpi-icon{background:var(--pl);color:var(--p)}
+.kpi-orange::after{background:var(--p)}
+.kpi-green .kpi-icon{background:var(--grl);color:var(--gr)}
+.kpi-green::after{background:var(--gr)}
+.kpi-blue .kpi-icon{background:#EFF6FF;color:#2563EB}
+.kpi-blue::after{background:#2563EB}
+.kpi-warn .kpi-icon{background:var(--warnl);color:var(--warn)}
+.kpi-warn::after{background:var(--warn)}
+
+/* ── GRID 2COL ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3-1{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
+
+/* ── CARDS ── */
+.card{background:var(--sf);border-radius:14px;border:1px solid var(--bd);overflow:hidden}
+.card-head{padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:700;color:var(--t)}
+.card-sub{font-size:12px;color:var(--t3);margin-top:2px}
+.card-body{padding:20px}
+.card-link{font-size:12px;color:var(--p);font-weight:600;cursor:pointer;background:none;border:none;font-family:inherit}
+
+/* ── ORDERS LIST ── */
+.order-row{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .1s}
+.order-row:last-child{border-bottom:none}
+.order-row:hover{background:#FAFAF9}
+.order-num{font-size:13px;font-weight:700;color:var(--t);min-width:80px}
+.order-client{font-size:13px;color:var(--t2);flex:1}
+.order-items{font-size:12px;color:var(--t3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.order-total{font-size:14px;font-weight:700;color:var(--t);min-width:80px;text-align:right}
+.order-time{font-size:12px;color:var(--t3);min-width:60px;text-align:right}
+.status-pill{padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap}
+.sp-new{background:#FEF2F2;color:#DC2626}
+.sp-prep{background:var(--warnl);color:#B45309}
+.sp-ready{background:var(--grl);color:#15803D}
+.sp-way{background:#EFF6FF;color:#1D4ED8}
+.sp-done{background:#F3F4F6;color:#6B7280}
+.sp-reject{background:#F3F4F6;color:#9CA3AF}
+
+/* ── KANBAN ── */
+.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:20px;min-height:300px}
+.kb-col{background:#F7F4F1;border-radius:12px;padding:12px}
+.kb-col-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.kb-col-title{font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em}
+.kb-count{background:var(--bd);color:var(--t3);font-size:11px;font-weight:700;padding:1px 7px;border-radius:100px}
+.kb-card{background:var(--sf);border-radius:10px;border:1px solid var(--bd);padding:12px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.kb-card:hover{border-color:var(--p);box-shadow:0 2px 8px rgba(255,65,3,.12)}
+.kb-card.urgent{border-left:3px solid var(--p)}
+.kb-order-num{font-size:11px;font-weight:700;color:var(--t3);margin-bottom:3px}
+.kb-client{font-size:13px;font-weight:700;color:var(--t)}
+.kb-items{font-size:12px;color:var(--t3);margin:3px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kb-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.kb-total{font-size:13px;font-weight:700;color:var(--p)}
+.kb-time{font-size:11px;color:var(--t3)}
+.kb-new-head .kb-col-title{color:var(--p)}
+.kb-new-head .kb-count{background:var(--pl);color:var(--p)}
+
+/* ── CHART ── */
+.chart-wrap{padding:16px 20px 8px;position:relative;height:180px}
+.chart-bars{display:flex;align-items:flex-end;gap:8px;height:140px;padding:0 4px}
+.bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:6px 6px 0 0;transition:opacity .15s;cursor:pointer;min-width:24px}
+.bar:hover{opacity:.75}
+.bar-label{font-size:10px;color:var(--t3);font-weight:600;margin-top:4px}
+.chart-yaxis{display:flex;flex-direction:column;justify-content:space-between;height:140px;padding:2px 0;position:absolute;left:20px;top:16px}
+.yax-label{font-size:10px;color:var(--t3)}
+
+/* ── PRODUCTS TABLE ── */
+.prod-row{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--bd)}
+.prod-row:last-child{border-bottom:none}
+.prod-emoji{width:36px;height:36px;border-radius:8px;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.prod-name{flex:1;font-size:13px;font-weight:600;color:var(--t)}
+.prod-cat{font-size:11px;color:var(--t3);margin-top:1px}
+.prod-price{font-size:14px;font-weight:700;color:var(--t);min-width:64px;text-align:right}
+.prod-toggle{flex-shrink:0}
+.toggle{appearance:none;width:36px;height:20px;border-radius:10px;background:var(--bd);cursor:pointer;position:relative;transition:background .2s}
+.toggle:checked{background:var(--gr)}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle:checked::after{transform:translateX(16px)}
+
+/* ── STATS ── */
+.stat-donut{display:flex;align-items:center;gap:20px;padding:16px 20px}
+.donut-svg{flex-shrink:0}
+.donut-legend{display:flex;flex-direction:column;gap:8px}
+.dl-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2)}
+.dl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dl-pct{font-weight:700;color:var(--t);margin-left:auto;min-width:36px;text-align:right}
+
+/* ── MODALS/OVERLAYS ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,22,33,.45);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.hide{display:none}
+.modal{background:var(--sf);border-radius:16px;width:460px;max-height:80vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.2)}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:800}
+.modal-close{width:28px;height:28px;border-radius:7px;border:none;background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.modal-body{padding:24px}
+.modal-field{margin-bottom:14px}
+.modal-field label{display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px}
+.modal-inp{width:100%;padding:10px 12px;border:1.5px solid var(--bd);border-radius:9px;font-family:inherit;font-size:13px;color:var(--t);outline:none;transition:border-color .15s}
+.modal-inp:focus{border-color:var(--p)}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--bd);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── BUTTONS ── */
+.btn{border:none;border-radius:100px;padding:10px 20px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--p);color:#fff}
+.btn-primary:hover{background:var(--pd)}
+.btn-secondary{background:var(--bg);color:var(--t2);border:1.5px solid var(--bd)}
+.btn-secondary:hover{border-color:var(--t2);color:var(--t)}
+.btn-sm{padding:7px 14px;font-size:12px}
+.btn-danger{background:#FEF2F2;color:#DC2626}
+.btn-success{background:var(--grl);color:#15803D}
+
+/* ── ALERTS ── */
+.alert{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:10px;margin-bottom:14px;font-size:13px}
+.alert-new{background:var(--pl);border:1px solid #FECACA;color:var(--pd)}
+.alert-dot{width:8px;height:8px;border-radius:50%;background:var(--p);flex-shrink:0;margin-top:3px;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+/* ── UTILS ── */
+.divider{height:1px;background:var(--bd);margin:0}
+.section-title{font-size:13px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.empty{text-align:center;padding:40px;color:var(--t3)}
+.empty-icon{font-size:40px;margin-bottom:8px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .25s ease both}
+.tag-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:700}
+.tp-orange{background:var(--pl);color:var(--p)}
+.tp-green{background:var(--grl);color:var(--gr)}
+.tp-gray{background:#F3F4F6;color:#6B7280}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <img src="logo C/cravi-icon-orange-512px.png" alt="cravi" id="sb-logo-img" style="height:26px">
+    </div>
+    <div class="sb-biz">
+      <div class="sb-biz-name" id="sb-biz-name">Cargando...</div>
+      <div class="sb-biz-plan" id="sb-biz-plan">⚡ Plan ...</div>
+      <div class="sb-status">
+        <div class="status-dot" id="status-dot"></div>
+        <span class="status-label" id="status-label">...</span>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <button class="nav-item active" onclick="showScreen('dashboard')">
+        <span class="nav-icon">⬛</span> Dashboard
+      </button>
+      <button class="nav-item" onclick="showScreen('orders')">
+        <span class="nav-icon">📋</span> Pedidos
+        <span class="nav-badge" id="orders-badge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" onclick="showScreen('products')">
+        <span class="nav-icon">🍽️</span> Productos
+      </button>
+      <button class="nav-item" onclick="showScreen('stats')">
+        <span class="nav-icon">📊</span> Estadísticas
+      </button>
+      <button class="nav-item" onclick="showScreen('settings')">
+        <span class="nav-icon">⚙️</span> Configuración
+      </button>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user" style="margin-bottom:12px">
+        <div class="sb-avatar" id="sb-user-initials">--</div>
+        <div class="sb-user-info">
+          <div class="sb-user-name" id="sb-user-name">Usuario</div>
+          <div class="sb-user-role" id="sb-user-role">Administrador</div>
+        </div>
+      </div>
+      <button class="nav-item" onclick="location.href='index.html'" style="color:#ef4444; padding-top:10px; border-top:1px solid rgba(255,255,255,0.07); width:100%">
+        <span class="nav-icon">🚪</span> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <header class="topbar">
+      <div class="tb-left">
+        <div>
+          <div class="tb-title" id="tb-title">Dashboard</div>
+          <div class="tb-date" id="tb-date"></div>
+        </div>
+      </div>
+      <div class="tb-right">
+        <button class="open-badge" onclick="toggleOpen()" id="open-btn">
+          <span class="dot" id="open-dot"></span>
+          <span id="open-label">...</span>
+        </button>
+        <button class="tb-btn" onclick="showScreen('orders')">
+          🔔
+          <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ══════════════════ DASHBOARD ══════════════════ -->
+      <div class="screen active fade-up" id="screen-dashboard">
+        <div class="alert alert-new" id="new-order-alert" style="display:none">
+          <div class="alert-dot"></div>
+          <div id="new-order-text"></div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi kpi-orange">
+            <div class="kpi-icon">💰</div>
+            <div class="kpi-label">Ventas hoy</div>
+            <div class="kpi-value" id="kpi-sales-today">$0</div>
+            <div class="kpi-delta" id="kpi-sales-delta">Calculando...</div>
+          </div>
+          <div class="kpi kpi-green">
+            <div class="kpi-icon">📦</div>
+            <div class="kpi-label">Pedidos hoy</div>
+            <div class="kpi-value" id="kpi-orders-today">0</div>
+            <div class="kpi-delta" id="kpi-orders-delta">...</div>
+          </div>
+          <div class="kpi kpi-blue">
+            <div class="kpi-icon">🎯</div>
+            <div class="kpi-label">Ticket promedio</div>
+            <div class="kpi-value" id="kpi-avg-ticket">$0</div>
+            <div class="kpi-delta" id="kpi-avg-delta">...</div>
+          </div>
+          <div class="kpi kpi-warn">
+            <div class="kpi-icon">⏳</div>
+            <div class="kpi-label">Pendientes</div>
+            <div class="kpi-value" id="kpi-pending">0</div>
+            <div class="kpi-delta" id="kpi-pending-status">Sin pendientes</div>
+          </div>
+        </div>
+
+        <div class="grid-3-1">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Ventas esta semana</div>
+                <div class="card-sub">Basado en pedidos completados</div>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <div class="chart-bars" id="week-chart"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">Pagos</div>
+            </div>
+            <div class="stat-donut">
+              <div class="donut-legend" id="payment-legend" style="width:100%">
+                <div class="empty">No hay datos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Últimos pedidos</div>
+              <div class="card-sub" id="recent-orders-sub">Mostrando los más recientes</div>
+            </div>
+            <button class="card-link" onclick="showScreen('orders')">Ver todos →</button>
+          </div>
+          <div id="dashboard-recent-orders">
+            <div class="empty">Cargando pedidos...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ PEDIDOS ══════════════════ -->
+      <div class="screen fade-up" id="screen-orders">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-head">
+            <div class="card-title">Gestión de pedidos — Kanban</div>
+            <div style="display:flex;gap:8px;font-size:12px;color:var(--t3);align-items:center" id="orders-date-header"></div>
+          </div>
+          <div class="kanban" id="kanban-board">
+            <div class="kb-col" id="col-NUEVO">
+              <div class="kb-col-head kb-new-head"><span class="kb-col-title">Nuevos</span><span class="kb-count">0</span></div>
+              <div class="kb-list"></div>
+            </div>
+            <div class="kb-col" id="col-PREPARANDO">
+              <div class="kb-col-head"><span class="kb-col-title">Preparando</span><span class="kb-count">0</span></div>
+              <div class="kb-list"></div>
+            </div>
+            <div class="kb-col" id="col-LISTO">
+              <div class="kb-col-head"><span class="kb-col-title">Listo</span><span class="kb-count">0</span></div>
+              <div class="kb-list"></div>
+            </div>
+            <div class="kb-col" id="col-EN_CAMINO">
+              <div class="kb-col-head"><span class="kb-col-title">En camino</span><span class="kb-count">0</span></div>
+              <div class="kb-list"></div>
+            </div>
+            <div class="kb-col" id="col-ENTREGADO">
+              <div class="kb-col-head"><span class="kb-col-title">Entregado</span><span class="kb-count">0</span></div>
+              <div class="kb-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ PRODUCTOS ══════════════════ -->
+      <div class="screen fade-up" id="screen-products">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div class="section-title" style="margin:0">🍽️ Menú activo <span class="tag-pill tp-green" id="products-count-badge">0 productos</span></div>
+          <button class="btn btn-primary btn-sm" onclick="openAddProduct()">+ Nuevo producto</button>
+        </div>
+        <div class="card">
+          <div id="products-list-container">
+            <div class="empty">Cargando productos...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ ESTADÍSTICAS ══════════════════ -->
+      <div class="screen fade-up" id="screen-stats">
+        <div class="kpi-grid" id="stats-kpi-grid">
+           <!-- KPIs mes ... -->
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><div class="card-title">Top productos del mes</div></div>
+            <div id="top-products-list" style="padding:8px 0">
+              <div class="empty">Calculando...</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">Pedidos por día</div></div>
+            <div style="padding:16px 20px">
+              <div id="days-chart" style="display:flex;flex-direction:column;gap:8px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ CONFIGURACIÓN ══════════════════ -->
+      <div class="screen fade-up" id="screen-settings">
+        <div class="card" style="max-width:560px">
+          <div class="card-head"><div class="card-title">⚙️ Información del negocio</div></div>
+          <form id="settings-form" class="card-body" style="display:flex;flex-direction:column;gap:14px">
+            <div class="modal-field"><label>Nombre del negocio</label><input name="bizName" class="modal-inp"></div>
+            <div class="modal-field"><label>Descripción</label><textarea name="bizDesc" class="modal-inp" style="resize:none;height:72px"></textarea></div>
+            <div class="modal-field"><label>WhatsApp de pedidos</label><input name="bizWhatsapp" class="modal-inp"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="modal-field"><label>Pedido mínimo (MXN)</label><input name="bizMin" class="modal-inp" type="number"></div>
+              <div class="modal-field"><label>Tiempo de entrega</label>
+                <input name="bizTime" class="modal-inp" placeholder="20-30 min">
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end"><button type="submit" class="btn btn-primary">Guardar cambios</button></div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── ORDER MODAL ── -->
+<div class="modal-overlay hide" id="order-modal-overlay" onclick="closeOrderModal(event)">
+  <div class="modal" id="order-modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modal-order-num">Pedido #...</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px" id="modal-order-time">...</div>
+      </div>
+      <button class="modal-close" onclick="closeOrderModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="background:var(--bg);border-radius:10px;padding:12px">
+          <div style="font-size:11px;color:var(--t3);font-weight:600;margin-bottom:4px">CLIENTE</div>
+          <div style="font-size:14px;font-weight:700" id="modal-client-name">...</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:2px" id="modal-client-phone">...</div>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:12px">
+          <div style="font-size:11px;color:var(--t3);font-weight:600;margin-bottom:4px">DIRECCIÓN</div>
+          <div style="font-size:13px;font-weight:600;color:var(--t)" id="modal-client-address">...</div>
+        </div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Artículos</div>
+      <div id="modal-items-list" style="background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px">
+         <!-- Items -->
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--pl);border-radius:10px;margin-bottom:16px">
+        <span style="font-size:13px;font-weight:700">Total</span>
+        <span style="font-size:18px;font-weight:800;color:var(--p)" id="modal-total">$0 MXN</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--t2);margin-bottom:4px">
+        <span>Método de pago</span><span style="font-weight:700" id="modal-payment">...</span>
+      </div>
+      <div style="font-size:12px;color:var(--t3);background:var(--bg);border-radius:8px;padding:8px 12px;margin-top:10px" id="modal-note-box">
+        📝 <em id="modal-note">...</em>
+      </div>
+    </div>
+    <div class="modal-footer" id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- ── ADD/EDIT PRODUCT MODAL ── -->
+<div class="modal-overlay hide" id="prod-modal-overlay" onclick="closeProdModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title" id="prod-modal-title">Nuevo producto</div>
+      <button class="modal-close" onclick="closeProdModal()">✕</button>
+    </div>
+    <form id="product-form" class="modal-body">
+      <input type="hidden" name="id">
+      <div class="modal-field"><label>Nombre *</label><input name="name" class="modal-inp" required></div>
+      <div class="modal-field"><label>Descripción</label><input name="desc" class="modal-inp"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="modal-field"><label>Precio (MXN) *</label><input name="price" class="modal-inp" type="number" required></div>
+        <div class="modal-field"><label>Emoji</label><input name="emoji" class="modal-inp" placeholder="🌮"></div>
+      </div>
+      <div class="modal-field"><label>Categoría</label>
+        <input name="category" class="modal-inp" placeholder="Ej. Tacos">
+      </div>
+      <div class="modal-field">
+        <label>Foto del producto (Opcional)</label>
+        <div style="display:flex; gap:10px; align-items:center">
+          <div id="prod-photo-preview" style="width:50px; height:50px; border-radius:8px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1.5px solid var(--bd)">
+            <span style="font-size:20px">📸</span>
+          </div>
+          <input type="file" id="prod-photo-input" accept="image/*" style="font-size:12px; flex:1">
+          <input type="hidden" name="photo">
+        </div>
+      </div>
+    </form>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeProdModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-product">Guardar producto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let businessId = new URLSearchParams(window.location.search).get('id');
+let business = null;
+let products = [];
+let orders = [];
+let currentOrderId = null;
+
+const API_URL = ''; // Same origin
+
+async function init() {
+  if(!businessId) {
+    alert("No se encontró ID de negocio");
+    return;
+  }
+  
+  await refreshData();
+  
+  // Update Date
+  const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const now = new Date();
+  document.getElementById('tb-date').textContent = days[now.getDay()] + ', ' + now.getDate() + ' de ' + months[now.getMonth()] + ' ' + now.getFullYear();
+  document.getElementById('orders-date-header').textContent = now.toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' });
+
+  // Polling for new orders
+  setInterval(refreshData, 30000);
+}
+
+async function refreshData() {
+  try {
+    const [bizRes, prodRes, ordRes] = await Promise.all([
+      fetch(`${API_URL}/api/businesses`).then(r => r.json()),
+      fetch(`${API_URL}/api/products?businessId=${businessId}`).then(r => r.json()),
+      fetch(`${API_URL}/api/orders?businessId=${businessId}`).then(r => r.json())
+    ]);
+    
+    business = bizRes.find(b => b.id === businessId);
+    products = prodRes;
+    orders = ordRes.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+    if (!business) {
+      document.body.innerHTML = '<div style="font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#fff8f5"><div style="text-align:center;padding:40px"><div style="font-size:60px;margin-bottom:16px">❓</div><h2 style="color:#FF4103">Negocio no encontrado</h2><p style="color:#666">El ID proporcionado no es válido.</p><a href="cravi-onboarding.html" style="color:#FF4103;font-weight:700">Registrar negocio →</a></div></div>';
+      return;
+    }
+    if (!business.active) {
+      document.body.innerHTML = '<div style="font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#fff8f5"><div style="text-align:center;padding:40px;max-width:440px"><div style="font-size:60px;margin-bottom:16px">⏳</div><h2 style="color:#FF4103">Cuenta pendiente de activación</h2><p style="color:#666">Tu negocio <strong>' + business.bizName + '</strong> está siendo revisado por nuestro equipo. Te notificaremos por WhatsApp cuando esté activo.</p><p style="color:#aaa;font-size:13px;margin-top:24px">¿Preguntas? Escríbenos al soporte de Cravi.</p></div></div>';
+      return;
+    }
+    if (business.plan && business.plan.toLowerCase() === 'plus') {
+      window.location.replace('cravi-panelplus.html?id=' + businessId);
+      return;
+    }
+
+    renderUI();
+  } catch (e) {
+    console.error("Error refreshing data:", e);
+  }
+}
+
+function renderUI() {
+  if(!business) return;
+  
+  // Sidebar
+  document.getElementById('sb-biz-name').textContent = business.bizName;
+  document.getElementById('sb-biz-plan').textContent = business.plan === 'plus' ? '⚡ Plan Plus' : 'Basic Plan';
+  document.getElementById('sb-user-name').textContent = business.ownerName || 'Dueño';
+  document.getElementById('sb-user-initials').textContent = (business.ownerName || 'XX').split(' ').map(n => n[0]).join('').toUpperCase();
+  
+  // Open status
+  updateOpenStatusUI(business.isOpen !== false);
+  
+  // Settings form
+  const form = document.getElementById('settings-form');
+  form.bizName.value = business.bizName || '';
+  form.bizDesc.value = business.bizDesc || '';
+  form.bizWhatsapp.value = business.bizWhatsapp || '';
+  form.bizMin.value = business.bizMin || '';
+  form.bizTime.value = business.bizTime || '';
+
+  // Products
+  renderProducts();
+  
+  // Orders
+  renderOrders();
+  
+  // Stats & KPIs
+  renderKPIs();
+}
+
+function updateOpenStatusUI(isOpen) {
+  const dot = document.getElementById('open-dot');
+  const label = document.getElementById('open-label');
+  const sbDot = document.getElementById('status-dot');
+  const sbLabel = document.getElementById('status-label');
+  const btn = document.getElementById('open-btn');
+  
+  if(isOpen) {
+    dot.style.background = '#22A861';
+    label.textContent = 'Abierto';
+    btn.style.background = 'var(--grl)';
+    btn.style.color = 'var(--gr)';
+    sbDot.className = 'status-dot';
+    sbLabel.textContent = 'Abierto · aceptando pedidos';
+  } else {
+    dot.style.background = '#9CA3AF';
+    label.textContent = 'Cerrado';
+    btn.style.background = '#F3F4F6';
+    btn.style.color = '#6B7280';
+    sbDot.className = 'status-dot off';
+    sbLabel.textContent = 'Cerrado temporalmente';
+  }
+}
+
+async function toggleOpen() {
+  const newStatus = business.isOpen === false;
+  try {
+    const res = await fetch(`${API_URL}/api/businesses?id=${businessId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isOpen: newStatus })
+    });
+    if(res.ok) {
+      business.isOpen = newStatus;
+      updateOpenStatusUI(newStatus);
+    }
+  } catch (e) {
+    alert("Error al cambiar estado");
+  }
+}
+
+function renderProducts() {
+  const container = document.getElementById('products-list-container');
+  if(products.length === 0) {
+    container.innerHTML = '<div class="empty">No tienes productos aún.</div>';
+    return;
+  }
+  
+  // Group by category
+  const cats = {};
+  products.forEach(p => {
+    const c = p.category || 'Otros';
+    if(!cats[c]) cats[c] = [];
+    cats[c].push(p);
+  });
+  
+  let html = '';
+  for(let c in cats) {
+    html += `<div class="card-head"><div class="card-title">${c}</div></div>`;
+    cats[c].forEach(p => {
+      let displayImg = '🍽️';
+      if (p.photo) {
+        displayImg = `<img src="${p.photo}" style="width:100%; height:100%; object-fit:cover; border-radius:6px">`;
+      } else if (p.emoji) {
+        displayImg = p.emoji;
+      }
+      
+      html += `
+        <div class="prod-row" style="display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid var(--bd)">
+          <div class="prod-emoji" style="width:40px; height:40px; background:var(--bg); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; overflow:hidden">
+            ${displayImg}
+          </div>
+          <div style="flex:1; cursor:pointer" onclick="openEditProduct('${p.id}')">
+            <div class="prod-name" style="font-weight:700; font-size:14px; color:var(--t)">${p.name}</div>
+            <div class="prod-cat" style="font-size:12px; color:var(--t3); margin-top:2px">${p.desc || ''}</div>
+          </div>
+          <div class="prod-price">$${p.price}</div>
+          <div class="prod-toggle">
+            <input type="checkbox" class="toggle" ${p.available !== false ? 'checked' : ''} onchange="toggleProduct('${p.id}', this.checked)">
+          </div>
+        </div>
+      `;
+    });
+  }
+  container.innerHTML = html;
+  document.getElementById('products-count-badge').textContent = `${products.length} productos`;
+}
+
+async function toggleProduct(id, available) {
+  await fetch(`${API_URL}/api/products?id=${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ available })
+  });
+}
+
+function renderOrders() {
+  const activeOrders = orders.filter(o => o.status !== 'ENTREGADO' && o.status !== 'RECHAZADO');
+  const badge = document.getElementById('orders-badge');
+  const notif = document.getElementById('notif-badge');
+  
+  if(activeOrders.length > 0) {
+    badge.textContent = activeOrders.length; badge.style.display = 'block';
+    notif.textContent = activeOrders.length; notif.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+    notif.style.display = 'none';
+  }
+  
+  // Dashboard recent
+  const dashboardRecent = document.getElementById('dashboard-recent-orders');
+  if(orders.length === 0) {
+    dashboardRecent.innerHTML = '<div class="empty">No hay pedidos históricos.</div>';
+  } else {
+    dashboardRecent.innerHTML = orders.slice(0, 5).map(o => `
+      <div class="order-row" onclick="openOrderModalById('${o.id}')">
+        <div class="order-num">#${o.id.slice(-4)}</div>
+        <div class="order-client">${o.customerName}</div>
+        <div class="order-items">${o.items.map(i => i.name).join(', ')}</div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+          <span class="status-pill sp-${getStatusClass(o.status)}">${o.status}</span>
+          <div class="order-total">$${o.total}</div>
+          <div class="order-time">${new Date(o.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  // Kanban
+  const states = ['NUEVO', 'PREPARANDO', 'LISTO', 'EN_CAMINO', 'ENTREGADO'];
+  states.forEach(s => {
+    const col = document.getElementById(`col-${s}`);
+    const list = col.querySelector('.kb-list');
+    const count = col.querySelector('.kb-count');
+    const filtered = orders.filter(o => o.status === s);
+    
+    count.textContent = filtered.length;
+    list.innerHTML = filtered.map(o => `
+      <div class="kb-card ${s === 'NUEVO' ? 'urgent' : ''}" onclick="openOrderModalById('${o.id}')">
+        <div class="kb-order-num">#${o.id.slice(-4)}</div>
+        <div class="kb-client">${o.customerName}</div>
+        <div class="kb-items">${o.items.length} productos</div>
+        <div class="kb-footer">
+          <span class="kb-total">$${o.total}</span>
+          <span class="kb-time">${new Date(o.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+function getStatusClass(s) {
+  if(s === 'NUEVO') return 'new';
+  if(s === 'PREPARANDO') return 'prep';
+  if(s === 'LISTO') return 'ready';
+  if(s === 'EN_CAMINO') return 'way';
+  if(s === 'ENTREGADO') return 'done';
+  return 'reject';
+}
+
+function renderKPIs() {
+  const today = new Date().toDateString();
+  const ordersToday = orders.filter(o => new Date(o.date).toDateString() === today);
+  const salesToday = ordersToday.filter(o => o.status !== 'RECHAZADO').reduce((sum, o) => sum + o.total, 0);
+  const pending = orders.filter(o => ['NUEVO', 'PREPARANDO'].includes(o.status)).length;
+  const avgTicket = ordersToday.length > 0 ? (salesToday / ordersToday.length).toFixed(0) : 0;
+  
+  document.getElementById('kpi-sales-today').textContent = `$${salesToday.toLocaleString()}`;
+  document.getElementById('kpi-orders-today').textContent = ordersToday.length;
+  document.getElementById('kpi-avg-ticket').textContent = `$${avgTicket}`;
+  document.getElementById('kpi-pending').textContent = pending;
+  
+  // Weekly chart logic simplified
+  const chart = document.getElementById('week-chart');
+  chart.innerHTML = '';
+  const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const weekSales = new Array(7).fill(0);
+  orders.forEach(o => {
+    const d = new Date(o.date);
+    // last 7 days only
+    if(new Date() - d < 7 * 24 * 60 * 60 * 1000) {
+      weekSales[d.getDay()] += o.total;
+    }
+  });
+  
+  const maxVal = Math.max(...weekSales, 100);
+  weekSales.forEach((val, i) => {
+    const h = (val / maxVal) * 130;
+    const grp = document.createElement('div');
+    grp.className = 'bar-group';
+    grp.innerHTML = `
+      <div class="bar" style="height:${h}px; background:${i === new Date().getDay() ? 'var(--p)' : 'var(--dark3)'}" title="$${val}"></div>
+      <div class="bar-label">${days[i]}</div>
+    `;
+    chart.appendChild(grp);
+  });
+}
+
+// Navigation
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  
+  const target = document.getElementById('screen-' + id);
+  if(target) target.classList.add('active');
+  
+  const navItems = document.querySelectorAll('.sb-nav .nav-item');
+  const navMap = {dashboard:0, orders:1, products:2, stats:3, settings:4};
+  if(navItems[navMap[id]]) navItems[navMap[id]].classList.add('active');
+  
+  const titles = {dashboard:'Dashboard', orders:'Gestión de pedidos', products:'Mis productos', stats:'Estadísticas', settings:'Configuración'};
+  document.getElementById('tb-title').textContent = titles[id] || id;
+}
+
+// Modals
+function openOrderModalById(id) {
+  const order = orders.find(o => o.id === id);
+  if(!order) return;
+  
+  currentOrderId = id;
+  document.getElementById('modal-order-num').textContent = `Pedido #${id.slice(-4)}`;
+  document.getElementById('modal-order-time').textContent = new Date(order.date).toLocaleString();
+  document.getElementById('modal-client-name').textContent = order.customerName;
+  document.getElementById('modal-client-phone').textContent = order.phone;
+  document.getElementById('modal-client-address').textContent = order.address || 'Para llevar';
+  document.getElementById('modal-total').textContent = `$${order.total} MXN`;
+  document.getElementById('modal-payment').textContent = order.paymentMethod || 'Efectivo';
+  document.getElementById('modal-note').textContent = order.customerNote || 'Sin notas';
+  
+  const itemsList = document.getElementById('modal-items-list');
+  itemsList.innerHTML = order.items.map(i => `
+    <div style="padding:10px 12px;border-bottom:1px solid var(--bd);font-size:13px;display:flex;justify-content:space-between">
+      <span>${i.quantity || 1}× ${i.name}</span>
+      <span style="font-weight:700">$${(i.price * (i.quantity || 1))}</span>
+    </div>
+  `).join('');
+  
+  const actions = document.getElementById('modal-actions');
+  actions.innerHTML = '<button class="btn btn-secondary btn-sm" onclick="closeOrderModal()">Cerrar</button>';
+  
+  if(order.status === 'NUEVO') {
+    actions.innerHTML += `<button class="btn btn-success" onclick="updateOrderStatus('${id}', 'PREPARANDO')">Aceptar y preparar</button>`;
+    actions.innerHTML += `<button class="btn btn-danger" onclick="updateOrderStatus('${id}', 'RECHAZADO')">Rechazar</button>`;
+  } else if(order.status === 'PREPARANDO') {
+    actions.innerHTML += `<button class="btn btn-primary" onclick="updateOrderStatus('${id}', 'LISTO')">Marcar como listo</button>`;
+  } else if(order.status === 'LISTO') {
+    actions.innerHTML += `<button class="btn btn-primary" onclick="updateOrderStatus('${id}', 'EN_CAMINO')">Marcar en camino</button>`;
+  } else if(order.status === 'EN_CAMINO') {
+    actions.innerHTML += `<button class="btn btn-primary" onclick="updateOrderStatus('${id}', 'ENTREGADO')">Marcar entregado</button>`;
+  }
+  
+  document.getElementById('order-modal-overlay').classList.remove('hide');
+}
+
+async function updateOrderStatus(id, status) {
+  try {
+    const res = await fetch(`${API_URL}/api/orders?id=${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    if(res.ok) {
+      closeOrderModal();
+      refreshData();
+    }
+  } catch (e) { alert("Error al actualizar"); }
+}
+
+function closeOrderModal() {
+  document.getElementById('order-modal-overlay').classList.add('hide');
+}
+
+function openAddProduct() {
+  const form = document.getElementById('product-form');
+  form.reset();
+  form.id.value = '';
+  form.photo.value = '';
+  document.getElementById('prod-photo-preview').innerHTML = '<span style="font-size:20px">📸</span>';
+  document.getElementById('prod-modal-title').textContent = 'Nuevo producto';
+  document.getElementById('prod-modal-overlay').classList.remove('hide');
+}
+
+function openEditProduct(id) {
+  const p = products.find(x => x.id === id);
+  if(!p) return;
+  const form = document.getElementById('product-form');
+  form.id.value = p.id;
+  form.name.value = p.name;
+  form.desc.value = p.desc || '';
+  form.price.value = p.price;
+  form.emoji.value = p.emoji || '';
+  form.category.value = p.category || '';
+  form.photo.value = p.photo || '';
+  
+  const preview = document.getElementById('prod-photo-preview');
+  if(p.photo) preview.innerHTML = `<img src="${p.photo}" style="width:100%; height:100%; object-fit:cover">`;
+  else preview.innerHTML = '<span style="font-size:20px">📸</span>';
+
+  document.getElementById('prod-modal-title').textContent = 'Editar producto';
+  document.getElementById('prod-modal-overlay').classList.remove('hide');
+}
+
+// Photo Preview Logic
+document.getElementById('prod-photo-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const b64 = evt.target.result;
+    document.getElementById('product-form').photo.value = b64;
+    document.getElementById('prod-photo-preview').innerHTML = `<img src="${b64}" style="width:100%; height:100%; object-fit:cover">`;
+  };
+  reader.readAsDataURL(file);
+});
+
+function closeProdModal() {
+  document.getElementById('prod-modal-overlay').classList.add('hide');
+}
+
+document.getElementById('btn-save-product').onclick = async () => {
+  const form = document.getElementById('product-form');
+  const data = {
+    businessId,
+    name: form.name.value,
+    desc: form.desc.value,
+    price: parseFloat(form.price.value),
+    emoji: form.emoji.value,
+    category: form.category.value || 'Otros',
+    photo: form.photo.value
+  };
+  
+  const id = form.id.value;
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `${API_URL}/api/products?id=${id}` : `${API_URL}/api/products`;
+  
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if(res.ok) {
+    closeProdModal();
+    refreshData();
+  }
+};
+
+document.getElementById('settings-form').onsubmit = async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData);
+  
+  const res = await fetch(`${API_URL}/api/businesses?id=${businessId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  if(res.ok) {
+    alert("Configuración guardada");
+    refreshData();
+  }
+};
+
+const LOGO_B64 = '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';
+
+window.onload = init;
+</script>
+</body>
+</html>
