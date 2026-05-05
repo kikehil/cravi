@@ -298,17 +298,30 @@ const server = http.createServer((req, res) => {
     let body = '';
     req.on('data', chunk => { body += chunk.toString(); });
     req.on('end', () => {
+      console.log('[Waitlist] Incoming request');
       try {
+        if (!body) {
+          throw new Error('Empty request body');
+        }
         const data = JSON.parse(body);
+        console.log('[Waitlist] Data received:', data);
+
         const entry = { id: Date.now().toString(), date: new Date(), ...data };
+        
+        if (!db.waitlist) {
+          console.log('[Waitlist] Initializing waitlist array');
+          db.waitlist = [];
+        }
+        
         db.waitlist.push(entry);
         saveDb();
+        console.log('[Waitlist] Saved successfully');
 
         if (data.email) {
           const subject = data.type === 'business' ? 'Registro de negocio en Cravi' : 'Bienvenido a la lista de espera de Cravi';
           const text = data.type === 'business' 
-            ? `Hola ${data.bizName},\n\nHemos recibido tu solicitud para registrar tu negocio en Cravi. Nuestro equipo se pondrá en contacto contigo pronto.`
-            : `Hola ${data.name},\n\n¡Gracias por unirte a la lista de espera de Cravi! Serás de los primeros en saber cuando estemos listos en Pánuco.`;
+            ? `Hola ${data.bizName || 'Negocio'},\n\nHemos recibido tu solicitud para registrar tu negocio en Cravi. Nuestro equipo se pondrá en contacto contigo pronto.`
+            : `Hola ${data.name || 'Usuario'},\n\n¡Gracias por unirte a la lista de espera de Cravi! Serás de los primeros en saber cuando estemos listos en Pánuco.`;
           
           sendEmail(data.email, subject, text);
         }
@@ -316,8 +329,9 @@ const server = http.createServer((req, res) => {
         res.writeHead(201, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true }));
       } catch (e) {
-        res.writeHead(400);
-        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+        console.error('[Waitlist] Error:', e.message);
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message || 'Invalid JSON' }));
       }
     });
   }
