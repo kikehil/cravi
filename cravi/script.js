@@ -85,8 +85,8 @@ const initForm = () => {
                     <input type="email" name="email" placeholder="juan@ejemplo.com" required>
                 </div>
                 <div class="input-group">
-                    <label>Teléfono (opcional)</label>
-                    <input type="tel" name="phone" placeholder="833 000 0000">
+                    <label>Teléfono</label>
+                    <input type="tel" name="phone" placeholder="833 000 0000" required>
                 </div>
             `;
         } else {
