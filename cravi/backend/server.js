@@ -425,6 +425,10 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(stats));
   }
+  else if (req.method === 'GET' && url.pathname === '/api/ceo/waitlist') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(db.waitlist || []));
+  }
   else {
     const decodedPath = decodeURIComponent(url.pathname);
     const normalizedPath = path.normalize(decodedPath).replace(/^(\.\.[\/\\])+/, '');
