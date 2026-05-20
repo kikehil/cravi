@@ -611,9 +611,9 @@ function Checkout(p){
         total: tot
       })
     }).then(function(){
-      setLoad(false); p.nav('tracking');
+      setLoad(false); p.nav('tracking', { restaurantName: p.rest ? p.rest.name : 'Restaurante' });
     }).catch(function(){
-      setLoad(false); p.nav('tracking'); // Fallback para MVP
+      setLoad(false); p.nav('tracking', { restaurantName: p.rest ? p.rest.name : 'Restaurante' }); // Fallback para MVP
     });
   }
   return h('div',null,
@@ -677,7 +677,7 @@ function Checkout(p){
 function Tracking(p){
   var _s=useState(1),step=_s[0],setStep=_s[1];
   var _t=useState(0),tk=_t[0],setTk=_t[1];
-  var rn=(p.cart[0]&&p.cart[0].restaurantName)||'Tacos El Güero';
+  var rn=(p.trk&&p.trk.restaurantName)||(p.cart[0]&&p.cart[0].restaurantName)||'Restaurante';
   var oid='#MNV'+(0|1000+Math.random()*9000);
   useEffect(function(){
     var t=setInterval(function(){
@@ -764,7 +764,7 @@ function Orders(p){
     h('div',{className:'sh',style:{padding:'13px 18px'}},h('span',{style:{fontSize:16,fontWeight:700}},'Mis pedidos')),
     h('div',{className:'pb',style:{padding:'14px 18px',display:'flex',flexDirection:'column',gap:11}},
       ords.map(function(o,i){
-        return h('div',{key:i,className:'card',style:{padding:'14px',cursor:'pointer'},onClick:function(){p.nav('tracking')}},
+        return h('div',{key:i,className:'card',style:{padding:'14px',cursor:'pointer'},onClick:function(){p.nav('tracking', {restaurantName: o.r})}},
           h('div',{style:{display:'flex',alignItems:'center',gap:11,marginBottom:9}},
             h('div',{style:{width:42,height:42,borderRadius:11,background:'#FFF2EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}},o.e),
             h('div',{style:{flex:1}},
@@ -869,13 +869,14 @@ function App(){
   var _ca=useState([]),cart=_ca[0],setCart=_ca[1];
   var _re=useState(null),rest=_re[0],setRest=_re[1];
   var _od=useState(null),od=_od[0],setOd=_od[1];
+  var _tk=useState(null),trk=_tk[0],setTrk=_tk[1];
   var cnt=cart.reduce(function(s,i){return s+i.qty},0);
 
   function nav(to,p){
     setHist(function(h){return h.concat([sc])});
     if(to==='restaurant'&&p)setRest(p);
     if(to==='checkout'&&p)setOd(p);
-    if(to==='tracking')setCart([]);
+    if(to==='tracking'){if(p)setTrk(p);setCart([]);}
     setSc(to);
   }
   function back(){
@@ -910,8 +911,8 @@ function App(){
     search:h(Search,{nav:nav,back:back,cart:cart,rests:rests}),
     restaurant:rest?h(Restaurant,{r:rest,nav:nav,back:back,cart:cart,add:add,rem:rem}):null,
     cart:h(Cart,{cart:cart,upd:upd,nav:nav,back:back}),
-    checkout:h(Checkout,{cart:cart,od:od,nav:nav,back:back}),
-    tracking:h(Tracking,{nav:nav,cart:cart}),
+    checkout:h(Checkout,{cart:cart,od:od,nav:nav,back:back,rest:rest}),
+    tracking:h(Tracking,{nav:nav,cart:cart,trk:trk}),
     orders:h(Orders,{nav:nav}),
     profile:h(Profile,{nav:nav}),
   };
