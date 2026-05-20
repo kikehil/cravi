@@ -109,7 +109,56 @@ const server = http.createServer((req, res) => {
   } 
   else if (req.method === 'GET' && url.pathname === '/api/businesses') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(db.businesses));
+    const safeBusinesses = db.businesses.map(b => ({
+      id: b.id,
+      active: b.active,
+      status: b.status,
+      bizName: b.bizName,
+      bizCat: b.bizCat,
+      bizColor: b.bizColor,
+      bizTime: b.bizTime,
+      bizMin: b.bizMin,
+      bizDesc: b.bizDesc,
+      bizWhatsapp: b.bizWhatsapp,
+      plan: b.plan,
+      logoPreview: b.logoPreview ? `/api/images?businessId=${b.id}&type=logo` : null,
+      bannerPreview: b.bannerPreview ? `/api/images?businessId=${b.id}&type=banner` : null
+    }));
+    res.end(JSON.stringify(safeBusinesses));
+  }
+  else if (req.method === 'GET' && url.pathname === '/api/images') {
+    const bId = url.searchParams.get('businessId');
+    const pId = url.searchParams.get('productId');
+    const type = url.searchParams.get('type');
+
+    if (bId) {
+      const biz = db.businesses.find(b => b.id === bId);
+      if (biz) {
+        let base64String = type === 'logo' ? biz.logoPreview : (type === 'banner' ? biz.bannerPreview : null);
+        if (base64String) {
+          const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const buffer = Buffer.from(matches[2], 'base64');
+            res.writeHead(200, { 'Content-Type': matches[1], 'Cache-Control': 'public, max-age=86400' });
+            res.end(buffer);
+            return;
+          }
+        }
+      }
+    } else if (pId) {
+      const prod = db.products.find(p => p.id === pId);
+      if (prod && prod.photo) {
+        const matches = prod.photo.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (matches && matches.length === 3) {
+          const buffer = Buffer.from(matches[2], 'base64');
+          res.writeHead(200, { 'Content-Type': matches[1], 'Cache-Control': 'public, max-age=86400' });
+          res.end(buffer);
+          return;
+        }
+      }
+    }
+    res.writeHead(404);
+    res.end('Not found');
   }
   else if (req.method === 'GET' && url.pathname === '/activate') {
     const id = url.searchParams.get('id');
@@ -158,8 +207,12 @@ const server = http.createServer((req, res) => {
   else if (req.method === 'GET' && url.pathname === '/api/products') {
     const bId = url.searchParams.get('businessId');
     const prods = bId ? db.products.filter(p => p.businessId === bId) : db.products;
+    const safeProds = prods.map(p => ({
+      ...p,
+      photo: p.photo ? `/api/images?productId=${p.id}&type=photo` : null
+    }));
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(prods));
+    res.end(JSON.stringify(safeProds));
   }
   else if (req.method === 'POST' && url.pathname === '/api/products') {
     let body = '';
@@ -392,6 +445,8 @@ const server = http.createServer((req, res) => {
       const bizOrders = db.orders.filter(o => o.businessId === b.id);
       return {
         ...b,
+        logoPreview: b.logoPreview ? `/api/images?businessId=${b.id}&type=logo` : null,
+        bannerPreview: b.bannerPreview ? `/api/images?businessId=${b.id}&type=banner` : null,
         ordersCount: bizOrders.length,
         renewalDate: '2024-12-31'
       };
