@@ -1,0 +1,108 @@
+const https = require('https');
+
+function getConfig() {
+  const env = process.env.FACTURAMA_ENV || 'sandbox';
+  return {
+    host: env === 'production' ? 'api.facturama.mx' : 'apisandbox.facturama.mx',
+    auth: Buffer.from(`${process.env.FACTURAMA_USER || 'prueba'}:${process.env.FACTURAMA_PASS || 'prueba2011'}`).toString('base64')
+  };
+}
+
+function request(method, path, body) {
+  return new Promise((resolve, reject) => {
+    const { host, auth } = getConfig();
+    const bodyStr = body ? JSON.stringify(body) : null;
+    const options = {
+      hostname: host, port: 443, path, method,
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(bodyStr && { 'Content-Length': Buffer.byteLength(bodyStr) })
+      }
+    };
+    const req = https.request(options, res => {
+      let data = '';
+      res.on('data', c => { data += c; });
+      res.on('end', () => {
+        try {
+          const parsed = data ? JSON.parse(data) : {};
+          if (res.statusCode >= 200 && res.statusCode < 300) resolve(parsed);
+          else reject({ statusCode: res.statusCode, body: parsed });
+        } catch {
+          reject({ statusCode: res.statusCode, body: data });
+        }
+      });
+    });
+    req.on('error', reject);
+    if (bodyStr) req.write(bodyStr);
+    req.end();
+  });
+}
+
+// ── CSD ─────────────────────────────────────────────────────
+const uploadCsd = (rfc, certificate, privateKey, privateKeyPassword) =>
+  request('POST', '/api-lite/csds', { Rfc: rfc, Certificate: certificate, PrivateKey: privateKey, PrivateKeyPassword: privateKeyPassword });
+
+const getCsd = rfc => request('GET', `/api-lite/csds/${rfc}`);
+const deleteCsd = rfc => request('DELETE', `/api-lite/csds/${rfc}`);
+
+// ── CFDI ─────────────────────────────────────────────────────
+const createCfdi = payload => request('POST', '/api-lite/3/cfdis', payload);
+const getCfdi = (type, id) => request('GET', `/api-lite/cfdis/${type}/${id}`);
+const listCfdis = (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return request('GET', `/api-lite/cfdis${qs ? '?' + qs : ''}`);
+};
+const cancelCfdi = (type, id, motive = '02', uuidReplacement = null) => {
+  let path = `/api-lite/cfdis/${type}/${id}?motive=${motive}`;
+  if (uuidReplacement) path += `&uuidReplacement=${uuidReplacement}`;
+  return request('DELETE', path);
+};
+const downloadCfdi = (type, id, format) =>
+  request('GET', `/api-lite/cfdis/${type}/${id}/${format}`);
+
+// ── Builder ──────────────────────────────────────────────────
+function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = '01', currency = 'MXN', expeditionPlace }) {
+  const isPublic = !receiver.rfc || receiver.rfc === 'XAXX010101000';
+
+  const cfdiItems = items.map(item => {
+    const qty = parseFloat(item.quantity) || 1;
+    const unitPrice = Math.round(parseFloat(item.unitPrice) * 100) / 100;
+    const subtotal = Math.round(unitPrice * qty * 100) / 100;
+    const ivaTotal = Math.round(subtotal * 0.16 * 100) / 100;
+    return {
+      ProductCode: item.productCode || '01010101',
+      Description: item.description,
+      UnitCode: item.unitCode || 'E48',
+      Quantity: qty,
+      UnitPrice: unitPrice,
+      Subtotal: subtotal,
+      TaxObject: '02',
+      Taxes: [{ Total: ivaTotal, Name: 'IVA', Base: subtotal, Rate: 0.16, IsRetention: false }]
+    };
+  });
+
+  return {
+    NameId: '1',
+    CfdiType: 'I',
+    Serie: serie,
+    Folio: String(folio),
+    Date: new Date().toISOString().slice(0, 19),
+    PaymentForm: paymentForm,
+    PaymentMethod: 'PUE',
+    Currency: currency,
+    ExpeditionPlace: expeditionPlace || issuer.taxZipCode || '89000',
+    Issuer: {
+      FiscalRegime: issuer.fiscalRegime,
+      Rfc: issuer.rfc.toUpperCase(),
+      Name: issuer.legalName.toUpperCase()
+    },
+    Receiver: isPublic
+      ? { Rfc: 'XAXX010101000', Name: 'PUBLICO EN GENERAL', FiscalRegime: '616', TaxZipCode: issuer.taxZipCode || '89000', CfdiUse: 'S01' }
+      : { Rfc: receiver.rfc.toUpperCase(), Name: receiver.name.toUpperCase(), FiscalRegime: receiver.fiscalRegime, TaxZipCode: receiver.taxZipCode, CfdiUse: receiver.cfdiUse || 'G03' },
+    Items: cfdiItems
+  };
+}
+
+module.exports = { uploadCsd, getCsd, deleteCsd, createCfdi, getCfdi, listCfdis, cancelCfdi, downloadCfdi, buildCfdi };

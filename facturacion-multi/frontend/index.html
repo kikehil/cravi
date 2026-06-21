@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Facturación Multi-Emisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#2563eb;--pl:#eff6ff;--pd:#1d4ed8;
+  --gr:#16a34a;--grl:#f0fdf4;
+  --red:#dc2626;--redl:#fef2f2;
+  --warn:#d97706;--warnl:#fffbeb;
+  --bg:#f8fafc;--sf:#fff;--bd:#e2e8f0;
+  --t:#0f172a;--t2:#475569;--t3:#94a3b8;
+  --sidebar:220px;
+  --radius:10px;
+}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:var(--t);background:var(--bg);-webkit-font-smoothing:antialiased}
+
+/* ── LAYOUT ── */
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sidebar);background:#0f172a;display:flex;flex-direction:column;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--sf);border-bottom:1px solid var(--bd);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:24px}
+
+/* ── SIDEBAR ── */
+.sb-header{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-title{font-size:15px;font-weight:700;color:#fff}
+.sb-sub{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px}
+.sb-nav{padding:12px 8px;flex:1;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,.45);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:inherit;transition:all .15s}
+.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.8)}
+.nav-item.active{background:rgba(37,99,235,.25);color:#93c5fd}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.sb-env{margin:12px 8px;padding:10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.env-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:rgba(255,255,255,.5)}
+.env-dot{width:7px;height:7px;border-radius:50%;background:#22c55e}
+.env-dot.sandbox{background:#f59e0b}
+
+/* ── TOPBAR ── */
+.tb-title{font-size:16px;font-weight:700;color:var(--t)}
+.tb-sub{font-size:12px;color:var(--t3)}
+.tb-actions{display:flex;align-items:center;gap:8px}
+
+/* ── SCREEN ── */
+.screen{display:none}
+.screen.active{display:block;animation:fadeUp .2s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CARDS ── */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.card-head{padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:700;color:var(--t)}
+.card-sub{font-size:12px;color:var(--t3);margin-top:2px}
+.card-body{padding:20px}
+
+/* ── FORM ── */
+.form-grid{display:grid;gap:14px}
+.form-grid-2{grid-template-columns:1fr 1fr}
+.form-grid-3{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:600;color:var(--t2)}
+.inp{border:1.5px solid var(--bd);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;color:var(--t);background:var(--sf);outline:none;transition:border-color .15s;width:100%}
+.inp:focus{border-color:var(--p)}
+.inp::placeholder{color:var(--t3)}
+select.inp{cursor:pointer}
+.inp[type="file"]{padding:6px 10px;cursor:pointer}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .15s;text-decoration:none}
+.btn-primary{background:var(--p);color:#fff}
+.btn-primary:hover{background:var(--pd)}
+.btn-secondary{background:var(--bg);color:var(--t2);border:1.5px solid var(--bd)}
+.btn-secondary:hover{background:var(--bd)}
+.btn-danger{background:var(--redl);color:var(--red);border:1.5px solid #fecaca}
+.btn-danger:hover{background:#fecaca}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;padding:10px 16px;text-align:left;border-bottom:1px solid var(--bd);background:var(--bg)}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--bd);color:var(--t)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:11px;font-weight:700}
+.badge-green{background:var(--grl);color:var(--gr)}
+.badge-red{background:var(--redl);color:var(--red)}
+.badge-blue{background:var(--pl);color:var(--p)}
+.badge-warn{background:var(--warnl);color:var(--warn)}
+
+/* ── ALERT ── */
+.alert{padding:12px 16px;border-radius:var(--radius);font-size:13px;font-weight:500;margin-bottom:16px}
+.alert-error{background:var(--redl);color:var(--red);border:1px solid #fecaca}
+.alert-success{background:var(--grl);color:var(--gr);border:1px solid #bbf7d0}
+.alert-warn{background:var(--warnl);color:var(--warn);border:1px solid #fde68a}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:48px 24px;color:var(--t3)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--sf);border:1px solid var(--bd);border-radius:var(--radius);padding:16px 20px}
+.kpi-label{font-size:12px;color:var(--t3);font-weight:500;margin-bottom:6px}
+.kpi-value{font-size:24px;font-weight:800;color:var(--t)}
+.kpi-sub{font-size:11px;color:var(--t3);margin-top:4px}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal-overlay.hide{display:none}
+.modal{background:var(--sf);border-radius:14px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--t3);padding:4px;border-radius:6px}
+.modal-close:hover{background:var(--bg)}
+.modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:10px}
+
+/* ── CONCEPT ROW ── */
+.concept-row{display:grid;grid-template-columns:3fr 1fr 1fr auto;gap:8px;align-items:end}
+.concept-row .btn-icon{background:var(--redl);color:var(--red);border:none;border-radius:6px;padding:8px;cursor:pointer;font-size:14px;height:36px;width:36px;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sb-header">
+      <div class="sb-title">🧾 Multi-Emisor</div>
+      <div class="sb-sub">Facturama API</div>
+    </div>
+    <nav class="sb-nav">
+      <button class="nav-item active" onclick="showScreen('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" onclick="showScreen('emisores')">
+        <span class="nav-icon">🏢</span> Emisores / CSD
+      </button>
+      <button class="nav-item" onclick="showScreen('nueva')">
+        <span class="nav-icon">➕</span> Nueva Factura
+      </button>
+      <button class="nav-item" onclick="showScreen('facturas')">
+        <span class="nav-icon">📄</span> Facturas
+      </button>
+    </nav>
+    <div class="sb-env">
+      <div class="env-badge">
+        <div class="env-dot sandbox" id="env-dot"></div>
+        <span id="env-label">SANDBOX</span>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,.25);margin-top:4px" id="env-user">prueba</div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <div class="tb-title" id="tb-title">Dashboard</div>
+        <div class="tb-sub" id="tb-sub">Resumen general</div>
+      </div>
+      <div class="tb-actions" id="tb-actions"></div>
+    </header>
+
+    <div class="content">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="screen active" id="screen-dashboard">
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="kpi-label">Emisores activos</div>
+            <div class="kpi-value" id="kpi-emisores">—</div>
+            <div class="kpi-sub">Con CSD cargado</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Total facturas</div>
+            <div class="kpi-value" id="kpi-facturas">—</div>
+            <div class="kpi-sub">Todas las emitidas</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Facturas vigentes</div>
+            <div class="kpi-value" id="kpi-vigentes">—</div>
+            <div class="kpi-sub">Sin cancelar</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">Últimas facturas</div><div class="card-sub">Emitidas más recientemente</div></div>
+            <button class="btn btn-sm btn-secondary" onclick="showScreen('nueva')">+ Nueva factura</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Folio</th><th>Emisor</th><th>Receptor</th><th>Total</th><th>Estado</th><th>Fecha</th></tr></thead>
+              <tbody id="dash-invoices-body"><tr><td colspan="6" class="empty">Cargando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Emisores registrados</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>RFC</th><th>Razón social</th><th>Régimen</th><th>CP Fiscal</th><th>CSD</th></tr></thead>
+              <tbody id="dash-issuers-body"><tr><td colspan="5" class="empty">Cargando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EMISORES ══ -->
+      <div class="screen" id="screen-emisores">
+        <div class="card" style="max-width:640px">
+          <div class="card-head">
+            <div><div class="card-title">Cargar Certificado de Sello Digital (CSD)</div><div class="card-sub">Se carga una vez por RFC. Puedes registrar múltiples emisores.</div></div>
+          </div>
+          <div class="card-body">
+            <div id="csd-alert"></div>
+            <div class="form-grid">
+              <div class="form-grid form-grid-2">
+                <div class="field"><label>RFC del emisor *</label><input id="e-rfc" class="inp" placeholder="RFC123456789" maxlength="13" style="text-transform:uppercase"></div>
+                <div class="field"><label>Código postal fiscal *</label><input id="e-zip" class="inp" placeholder="89000" maxlength="5"></div>
+              </div>
+              <div class="field"><label>Razón social (nombre fiscal) *</label><input id="e-name" class="inp" placeholder="MI EMPRESA SA DE CV"></div>
+              <div class="field">
+                <label>Régimen fiscal *</label>
+                <select id="e-regime" class="inp">
+                  <option value="601">601 – General de Ley Personas Morales</option>
+                  <option value="603">603 – Personas Morales con Fines no Lucrativos</option>
+                  <option value="606">606 – Arrendamiento</option>
+                  <option value="612" selected>612 – Personas Físicas con Actividades Empresariales</option>
+                  <option value="616">616 – Sin obligaciones fiscales</option>
+                  <option value="621">621 – Incorporación Fiscal (RESICO)</option>
+                  <option value="622">622 – Actividades Agrícolas, Ganaderas, Silvícolas</option>
+                  <option value="625">625 – Régimen de las Actividades Empresariales con ingresos por Comisión</option>
+                  <option value="626">626 – Régimen Simplificado de Confianza (RESICO PF)</option>
+                </select>
+              </div>
+              <div class="form-grid form-grid-2">
+                <div class="field"><label>Archivo .cer (Certificado) *</label><input type="file" id="e-cer" class="inp" accept=".cer"></div>
+                <div class="field"><label>Archivo .key (Llave privada) *</label><input type="file" id="e-key" class="inp" accept=".key"></div>
+              </div>
+              <div class="field"><label>Contraseña de la llave privada *</label><input id="e-pass" class="inp" type="password" placeholder="Contraseña del archivo .key"></div>
+              <div style="display:flex;justify-content:flex-end">
+                <button class="btn btn-primary" id="btn-upload-csd" onclick="uploadCsd()">Cargar CSD</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Emisores registrados</div>
+            <button class="btn btn-sm btn-secondary" onclick="loadEmisores()">↺ Actualizar</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>RFC</th><th>Razón social</th><th>Régimen</th><th>CP Fiscal</th><th>CSD</th><th></th></tr></thead>
+              <tbody id="emisores-body"><tr><td colspan="6"><div class="empty">Cargando...</div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ NUEVA FACTURA ══ -->
+      <div class="screen" id="screen-nueva">
+        <div class="card" style="max-width:720px">
+          <div class="card-head"><div class="card-title">Crear nueva factura (CFDI 4.0)</div></div>
+          <div class="card-body">
+            <div id="nueva-alert"></div>
+
+            <!-- Emisor -->
+            <div style="font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Datos del emisor</div>
+            <div class="form-grid" style="margin-bottom:20px">
+              <div class="field">
+                <label>Emisor *</label>
+                <select id="n-emisor" class="inp">
+                  <option value="">-- Selecciona un emisor --</option>
+                </select>
+              </div>
+              <div class="form-grid form-grid-3">
+                <div class="field"><label>Serie</label><input id="n-serie" class="inp" value="F" maxlength="10"></div>
+                <div class="field">
+                  <label>Forma de pago</label>
+                  <select id="n-pago" class="inp">
+                    <option value="01">01 – Efectivo</option>
+                    <option value="02">02 – Cheque nominativo</option>
+                    <option value="03">03 – Transferencia</option>
+                    <option value="04">04 – Tarjeta de crédito</option>
+                    <option value="28">28 – Tarjeta de débito</option>
+                    <option value="99">99 – Por definir</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Moneda</label>
+                  <select id="n-moneda" class="inp">
+                    <option value="MXN">MXN – Peso mexicano</option>
+                    <option value="USD">USD – Dólar</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Receptor -->
+            <div style="font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Datos del receptor</div>
+            <div class="form-grid" style="margin-bottom:20px">
+              <div class="form-grid form-grid-2">
+                <div class="field"><label>RFC del receptor</label><input id="n-rfc" class="inp" placeholder="XAXX010101000 = Público en General" maxlength="13" style="text-transform:uppercase"></div>
+                <div class="field"><label>Nombre o Razón social</label><input id="n-nombre" class="inp" placeholder="Nombre del cliente"></div>
+              </div>
+              <div class="form-grid form-grid-3">
+                <div class="field">
+                  <label>Régimen fiscal</label>
+                  <select id="n-reg-receptor" class="inp">
+                    <option value="">-- Público en General --</option>
+                    <option value="601">601 – PF Morales</option>
+                    <option value="612">612 – Act. Empresariales</option>
+                    <option value="616">616 – Sin obligaciones</option>
+                    <option value="621">621 – Incorporación Fiscal</option>
+                    <option value="626">626 – RESICO PF</option>
+                  </select>
+                </div>
+                <div class="field"><label>CP fiscal receptor</label><input id="n-cp-receptor" class="inp" placeholder="89000" maxlength="5"></div>
+                <div class="field">
+                  <label>Uso del CFDI</label>
+                  <select id="n-uso" class="inp">
+                    <option value="S01">S01 – Sin efectos fiscales</option>
+                    <option value="G01">G01 – Adquisición de mercancias</option>
+                    <option value="G03">G03 – Gastos en general</option>
+                    <option value="D01">D01 – Honorarios médicos</option>
+                    <option value="I01">I01 – Construcciones</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conceptos -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em">Conceptos</div>
+              <button class="btn btn-sm btn-secondary" onclick="addConcept()">+ Agregar concepto</button>
+            </div>
+            <div id="concepts-wrap" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+              <!-- rows injected -->
+            </div>
+            <div style="background:var(--bg);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--t2)"><span>Subtotal</span><span id="n-subtotal">$0.00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--t2)"><span>IVA (16%)</span><span id="n-iva">$0.00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;color:var(--t);border-top:1px solid var(--bd);padding-top:8px;margin-top:4px"><span>Total</span><span id="n-total">$0.00</span></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end">
+              <button class="btn btn-primary" id="btn-crear-factura" onclick="crearFactura()">Timbrar CFDI</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ FACTURAS ══ -->
+      <div class="screen" id="screen-facturas">
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">Facturas emitidas</div><div class="card-sub">Todos los CFDIs timbrados</div></div>
+            <div style="display:flex;gap:8px">
+              <select id="filter-emisor" class="inp" style="width:200px;padding:6px 10px;font-size:12px" onchange="loadFacturas()">
+                <option value="">Todos los emisores</option>
+              </select>
+              <button class="btn btn-sm btn-secondary" onclick="loadFacturas()">↺ Actualizar</button>
+              <button class="btn btn-sm btn-primary" onclick="showScreen('nueva')">+ Nueva</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Folio</th><th>Emisor (RFC)</th><th>Receptor</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead>
+              <tbody id="facturas-body"><tr><td colspan="7"><div class="empty">Cargando...</div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ── CANCEL MODAL ── -->
+<div class="modal-overlay hide" id="cancel-modal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">Cancelar factura</div>
+      <button class="modal-close" onclick="document.getElementById('cancel-modal').classList.add('hide')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-warn">⚠️ Esta acción es irreversible. El CFDI será cancelado ante el SAT.</div>
+      <div class="field">
+        <label>Motivo de cancelación</label>
+        <select id="cancel-motive" class="inp">
+          <option value="02">02 – Comprobante emitido con errores sin relación</option>
+          <option value="01">01 – Comprobante emitido con errores con relación</option>
+          <option value="03">03 – No se llevó a cabo la operación</option>
+          <option value="04">04 – Operación nominativa relacionada en factura global</option>
+        </select>
+      </div>
+      <input type="hidden" id="cancel-invoice-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('cancel-modal').classList.add('hide')">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmarCancelacion()">Sí, cancelar CFDI</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let emisores = [];
+let facturas = [];
+let conceptos = [{ desc: '', qty: 1, price: 0, code: '01010101' }];
+
+// ── INIT ──────────────────────────────────────────────
+async function init() {
+  await loadConfig();
+  await Promise.all([loadEmisores(), loadFacturas()]);
+  renderDashboard();
+  addConcept(true); // Start with one concept row
+}
+
+async function loadConfig() {
+  try {
+    const cfg = await get('/api/config');
+    const dot = document.getElementById('env-dot');
+    document.getElementById('env-label').textContent = cfg.env.toUpperCase();
+    document.getElementById('env-user').textContent = cfg.user + ' @ ' + cfg.host;
+    dot.className = 'env-dot ' + cfg.env;
+  } catch {}
+}
+
+async function loadEmisores() {
+  try {
+    emisores = await get('/api/emisores');
+    renderEmisoresTable();
+    updateEmisorSelects();
+  } catch (e) { console.error(e); }
+}
+
+async function loadFacturas() {
+  try {
+    const rfc = document.getElementById('filter-emisor')?.value;
+    const url = rfc ? `/api/facturas?rfc=${rfc}` : '/api/facturas';
+    facturas = await get(url);
+    renderFacturasTable();
+    renderDashboard();
+  } catch (e) { console.error(e); }
+}
+
+// ── DASHBOARD ──────────────────────────────────────────
+function renderDashboard() {
+  document.getElementById('kpi-emisores').textContent = emisores.length;
+  document.getElementById('kpi-facturas').textContent = facturas.length;
+  document.getElementById('kpi-vigentes').textContent = facturas.filter(f => f.status === 'vigente').length;
+
+  const recent = [...facturas].sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt)).slice(0,5);
+  document.getElementById('dash-invoices-body').innerHTML = recent.length
+    ? recent.map(f => `<tr>
+        <td><strong>${f.serie}-${f.folio}</strong></td>
+        <td><code style="font-size:11px">${f.issuerRfc}</code></td>
+        <td>${f.receiverName}</td>
+        <td><strong>$${Number(f.total).toFixed(2)}</strong></td>
+        <td>${statusBadge(f.status)}</td>
+        <td>${fmtDate(f.createdAt)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="6"><div class="empty"><div class="empty-icon">📄</div>Sin facturas aún. <a href="#" onclick="showScreen(\'nueva\')" style="color:var(--p)">Crear primera factura →</a></div></td></tr>';
+
+  document.getElementById('dash-issuers-body').innerHTML = emisores.length
+    ? emisores.map(e => `<tr>
+        <td><code style="font-size:12px">${e.rfc}</code></td>
+        <td>${e.legalName}</td>
+        <td><span class="badge badge-blue">${e.fiscalRegime}</span></td>
+        <td>${e.taxZipCode}</td>
+        <td><span class="badge badge-green">✓ Activo</span></td>
+      </tr>`).join('')
+    : '<tr><td colspan="5"><div class="empty"><div class="empty-icon">🏢</div>Sin emisores. <a href="#" onclick="showScreen(\'emisores\')" style="color:var(--p)">Cargar CSD →</a></div></td></tr>';
+}
+
+// ── EMISORES ──────────────────────────────────────────
+function renderEmisoresTable() {
+  document.getElementById('emisores-body').innerHTML = emisores.length
+    ? emisores.map(e => `<tr>
+        <td><code style="font-size:12px">${e.rfc}</code></td>
+        <td>${e.legalName}</td>
+        <td><span class="badge badge-blue">${e.fiscalRegime}</span></td>
+        <td>${e.taxZipCode}</td>
+        <td><span class="badge badge-green">✓ Activo</span></td>
+        <td><button class="btn btn-sm btn-danger" onclick="eliminarEmisor('${e.rfc}')">Eliminar</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="6"><div class="empty"><div class="empty-icon">🏢</div>No hay emisores registrados aún.</div></td></tr>';
+}
+
+function updateEmisorSelects() {
+  const opts = emisores.map(e => `<option value="${e.rfc}">${e.rfc} – ${e.legalName}</option>`).join('');
+  document.getElementById('n-emisor').innerHTML = '<option value="">-- Selecciona un emisor --</option>' + opts;
+  const filterSel = document.getElementById('filter-emisor');
+  if (filterSel) filterSel.innerHTML = '<option value="">Todos los emisores</option>' + opts;
+}
+
+async function uploadCsd() {
+  const rfc = document.getElementById('e-rfc').value.trim().toUpperCase();
+  const name = document.getElementById('e-name').value.trim();
+  const regime = document.getElementById('e-regime').value;
+  const zip = document.getElementById('e-zip').value.trim();
+  const cerFile = document.getElementById('e-cer').files[0];
+  const keyFile = document.getElementById('e-key').files[0];
+  const pass = document.getElementById('e-pass').value;
+
+  if (!rfc || !name || !zip || !cerFile || !keyFile || !pass) {
+    showAlert('csd-alert', 'error', 'Completa todos los campos requeridos.');
+    return;
+  }
+
+  const toBase64 = f => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  });
+
+  const btn = document.getElementById('btn-upload-csd');
+  btn.textContent = 'Cargando...'; btn.disabled = true;
+
+  try {
+    const [certificate, privateKey] = await Promise.all([toBase64(cerFile), toBase64(keyFile)]);
+    const res = await post('/api/emisores', { rfc, legalName: name, fiscalRegime: regime, taxZipCode: zip, certificate, privateKey, privateKeyPassword: pass });
+    showAlert('csd-alert', 'success', `✅ CSD cargado correctamente para ${res.issuer.rfc} – ${res.issuer.legalName}`);
+    document.getElementById('e-rfc').value = '';
+    document.getElementById('e-name').value = '';
+    document.getElementById('e-zip').value = '';
+    document.getElementById('e-cer').value = '';
+    document.getElementById('e-key').value = '';
+    document.getElementById('e-pass').value = '';
+    await loadEmisores();
+    renderDashboard();
+  } catch (e) {
+    showAlert('csd-alert', 'error', '❌ Error: ' + (e.error || e.message || 'Error al cargar CSD'));
+  } finally {
+    btn.textContent = 'Cargar CSD'; btn.disabled = false;
+  }
+}
+
+async function eliminarEmisor(rfc) {
+  if (!confirm(`¿Eliminar el CSD de ${rfc}? Perderás la capacidad de timbrar con este RFC.`)) return;
+  try {
+    await del(`/api/emisores/${rfc}`);
+    await loadEmisores(); renderDashboard();
+  } catch (e) { alert('Error: ' + (e.error || e.message)); }
+}
+
+// ── CONCEPTOS ──────────────────────────────────────────
+function addConcept(first = false) {
+  if (!first) conceptos.push({ desc: '', qty: 1, price: 0, code: '01010101' });
+  renderConceptos();
+}
+
+function removeConcept(i) {
+  if (conceptos.length === 1) return;
+  conceptos.splice(i, 1);
+  renderConceptos();
+}
+
+function renderConceptos() {
+  const wrap = document.getElementById('concepts-wrap');
+  wrap.innerHTML = conceptos.map((c, i) => `
+    <div class="concept-row" id="concept-row-${i}">
+      <div class="field"><label>${i===0?'Descripción *':''}</label>
+        <input class="inp" placeholder="Descripción del concepto" value="${c.desc}" oninput="conceptos[${i}].desc=this.value;calcTotals()">
+      </div>
+      <div class="field"><label>${i===0?'Cantidad':''}</label>
+        <input class="inp" type="number" min="0.01" step="0.01" value="${c.qty}" oninput="conceptos[${i}].qty=parseFloat(this.value)||1;calcTotals()">
+      </div>
+      <div class="field"><label>${i===0?'Precio unit. (sin IVA)':''}</label>
+        <input class="inp" type="number" min="0" step="0.01" value="${c.price}" oninput="conceptos[${i}].price=parseFloat(this.value)||0;calcTotals()">
+      </div>
+      <button class="btn-icon" onclick="removeConcept(${i})" style="margin-top:${i===0?'18':'0'}px" title="Eliminar concepto">✕</button>
+    </div>`).join('');
+  calcTotals();
+}
+
+function calcTotals() {
+  const sub = conceptos.reduce((s, c) => s + (parseFloat(c.qty)||1) * (parseFloat(c.price)||0), 0);
+  const iva = sub * 0.16;
+  document.getElementById('n-subtotal').textContent = '$' + sub.toFixed(2);
+  document.getElementById('n-iva').textContent = '$' + iva.toFixed(2);
+  document.getElementById('n-total').textContent = '$' + (sub + iva).toFixed(2);
+}
+
+// ── CREAR FACTURA ──────────────────────────────────────
+async function crearFactura() {
+  const issuerRfc = document.getElementById('n-emisor').value;
+  if (!issuerRfc) { showAlert('nueva-alert', 'error', 'Selecciona un emisor.'); return; }
+  const validConceptos = conceptos.filter(c => c.desc.trim() && c.price > 0);
+  if (!validConceptos.length) { showAlert('nueva-alert', 'error', 'Agrega al menos un concepto con descripción y precio.'); return; }
+
+  const btn = document.getElementById('btn-crear-factura');
+  btn.textContent = 'Timbrando...'; btn.disabled = true;
+
+  const receiver = {
+    rfc: document.getElementById('n-rfc').value.trim().toUpperCase() || null,
+    name: document.getElementById('n-nombre').value.trim() || null,
+    fiscalRegime: document.getElementById('n-reg-receptor').value || null,
+    taxZipCode: document.getElementById('n-cp-receptor').value.trim() || null,
+    cfdiUse: document.getElementById('n-uso').value
+  };
+
+  const body = {
+    issuerRfc,
+    receiver,
+    serie: document.getElementById('n-serie').value || 'F',
+    paymentForm: document.getElementById('n-pago').value,
+    currency: document.getElementById('n-moneda').value,
+    items: validConceptos.map(c => ({ description: c.desc, quantity: c.qty, unitPrice: c.price, productCode: c.code }))
+  };
+
+  try {
+    const res = await post('/api/facturas', body);
+    showAlert('nueva-alert', 'success',
+      `✅ CFDI timbrado — Folio: <strong>${res.invoice.serie}-${res.invoice.folio}</strong>${res.invoice.uuid ? ` · UUID: ${res.invoice.uuid.substring(0,8)}...` : ''}`);
+    conceptos = [{ desc: '', qty: 1, price: 0, code: '01010101' }];
+    renderConceptos();
+    await loadFacturas();
+  } catch (e) {
+    showAlert('nueva-alert', 'error', '❌ ' + (e.error || e.message || 'Error al timbrar'));
+  } finally {
+    btn.textContent = 'Timbrar CFDI'; btn.disabled = false;
+  }
+}
+
+// ── FACTURAS LIST ──────────────────────────────────────
+function renderFacturasTable() {
+  const sorted = [...facturas].sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt));
+  document.getElementById('facturas-body').innerHTML = sorted.length
+    ? sorted.map(f => `<tr>
+        <td><strong>${f.serie}-${f.folio}</strong><br><span style="font-size:10px;color:var(--t3)">${f.uuid ? f.uuid.substring(0,8)+'...' : 'Sin UUID'}</span></td>
+        <td><code style="font-size:11px">${f.issuerRfc}</code></td>
+        <td><div style="font-size:13px">${f.receiverName}</div><code style="font-size:10px;color:var(--t3)">${f.receiverRfc}</code></td>
+        <td><strong>$${Number(f.total).toFixed(2)}</strong></td>
+        <td>${statusBadge(f.status)}</td>
+        <td>${fmtDate(f.createdAt)}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-sm btn-secondary" onclick="downloadFact('${f.id}','pdf')">PDF</button>
+            <button class="btn btn-sm btn-secondary" onclick="downloadFact('${f.id}','xml')">XML</button>
+            ${f.status==='vigente' ? `<button class="btn btn-sm btn-danger" onclick="openCancelModal('${f.id}')">Cancelar</button>` : ''}
+          </div>
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="7"><div class="empty"><div class="empty-icon">📄</div>No hay facturas.</div></td></tr>';
+}
+
+function downloadFact(id, format) {
+  window.open(`${API}/api/facturas/${id}/download/${format}`, '_blank');
+}
+
+function openCancelModal(id) {
+  document.getElementById('cancel-invoice-id').value = id;
+  document.getElementById('cancel-modal').classList.remove('hide');
+}
+
+async function confirmarCancelacion() {
+  const id = document.getElementById('cancel-invoice-id').value;
+  const motive = document.getElementById('cancel-motive').value;
+  try {
+    await del(`/api/facturas/${id}?motive=${motive}`);
+    document.getElementById('cancel-modal').classList.add('hide');
+    await loadFacturas();
+  } catch (e) { alert('Error: ' + (e.error || e.message)); }
+}
+
+// ── NAV ──────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  const map = {dashboard:0, emisores:1, nueva:2, facturas:3};
+  document.querySelectorAll('.nav-item')[map[id]]?.classList.add('active');
+  const titles = {dashboard:['Dashboard','Resumen general'], emisores:['Emisores / CSD','Registra y administra certificados'], nueva:['Nueva Factura','Crear CFDI 4.0'], facturas:['Facturas emitidas','Todos los CFDIs timbrados']};
+  const [t, s] = titles[id] || [id, ''];
+  document.getElementById('tb-title').textContent = t;
+  document.getElementById('tb-sub').textContent = s;
+  if (id === 'emisores') { loadEmisores(); }
+  if (id === 'facturas') { loadFacturas(); }
+  if (id === 'nueva') { updateEmisorSelects(); if (!conceptos.length) addConcept(true); }
+}
+
+// ── HELPERS ──────────────────────────────────────────
+function statusBadge(s) {
+  const map = { vigente: 'badge-green', cancelada: 'badge-red' };
+  return `<span class="badge ${map[s] || 'badge-warn'}">${s}</span>`;
+}
+function fmtDate(d) {
+  return d ? new Date(d).toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'}) : '—';
+}
+function showAlert(containerId, type, html) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = `<div class="alert alert-${type === 'error' ? 'error' : 'success'}">${html}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, 6000);
+}
+
+async function get(url) {
+  const res = await fetch(API + url);
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+}
+async function post(url, body) {
+  const res = await fetch(API + url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+}
+async function del(url) {
+  const res = await fetch(API + url, { method: 'DELETE' });
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
