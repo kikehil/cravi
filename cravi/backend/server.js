@@ -19,13 +19,17 @@ const CEO_USER = process.env.CEO_USER || 'admin';
 const CEO_PASS = process.env.CEO_PASS || 'cravi2024';
 
 // Initialize simple JSON DB
-let db = { businesses: [], products: [], orders: [], waitlist: [] };
+let db = { businesses: [], products: [], orders: [], waitlist: [], issuers: [], invoices: [] };
 if (fs.existsSync(DB_FILE)) {
   db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
   if (!db.waitlist) db.waitlist = [];
+  if (!db.issuers) db.issuers = [];
+  if (!db.invoices) db.invoices = [];
 } else {
   fs.writeFileSync(DB_FILE, JSON.stringify(db));
 }
+
+const facturama = require('./facturama');
 
 function saveDb() {
   fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
@@ -81,7 +85,7 @@ async function sendEmail(email, subject, text) {
   }
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   console.log(`${req.method} ${req.url}`);
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -388,6 +392,203 @@ const server = http.createServer((req, res) => {
       }
     });
   }
+  // --- BILLING / FACTURAMA MULTI-EMISOR ---
+
+  // Upload CSD certificate for a business RFC
+  else if (req.method === 'POST' && url.pathname === '/api/billing/csd') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const { businessId, rfc, certificate, privateKey, privateKeyPassword, fiscalRegime, legalName, taxZipCode } = JSON.parse(body);
+        const biz = db.businesses.find(b => b.id === businessId);
+        if (!biz) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Negocio no encontrado' }));
+        }
+
+        await facturama.uploadCsd({ rfc, certificate, privateKey, privateKeyPassword });
+
+        const existing = db.issuers.findIndex(i => i.businessId === businessId);
+        const issuerData = { businessId, rfc, fiscalRegime, legalName, taxZipCode, csdActive: true, uploadedAt: new Date() };
+        if (existing > -1) {
+          db.issuers[existing] = { ...db.issuers[existing], ...issuerData };
+        } else {
+          db.issuers.push({ id: Date.now().toString(), ...issuerData });
+        }
+        // Save fiscal data to business record as well
+        biz.rfc = rfc;
+        biz.fiscalRegime = fiscalRegime;
+        biz.legalName = legalName;
+        biz.taxZipCode = taxZipCode;
+        biz.csdActive = true;
+        saveDb();
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'CSD cargado correctamente' }));
+      } catch (e) {
+        console.error('[Billing/CSD] Error:', e);
+        const msg = e.body?.ModelState ? JSON.stringify(e.body.ModelState) : (e.body?.Message || e.message || 'Error al cargar CSD');
+        res.writeHead(e.statusCode || 500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: msg }));
+      }
+    });
+  }
+
+  // Get CSD status for a business
+  else if (req.method === 'GET' && url.pathname === '/api/billing/csd') {
+    const businessId = url.searchParams.get('businessId');
+    const issuer = db.issuers.find(i => i.businessId === businessId);
+    if (!issuer) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Sin CSD configurado' }));
+    }
+    try {
+      const csdInfo = await facturama.getCsd(issuer.rfc);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ...issuer, facturama: csdInfo }));
+    } catch (e) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(issuer));
+    }
+  }
+
+  // Create CFDI invoice for an order
+  else if (req.method === 'POST' && url.pathname === '/api/billing/invoice') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', async () => {
+      try {
+        const { orderId, businessId, customerRfc, customerName, customerFiscalRegime, customerTaxZip, cfdiUse } = JSON.parse(body);
+
+        const order = db.orders.find(o => o.id === orderId);
+        if (!order) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Pedido no encontrado' }));
+        }
+        const biz = db.businesses.find(b => b.id === (businessId || order.businessId));
+        if (!biz || !biz.rfc) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'El negocio no tiene RFC configurado. Sube el CSD primero.' }));
+        }
+
+        // Check for duplicate invoice for this order
+        const existing = db.invoices.find(i => i.orderId === orderId);
+        if (existing) {
+          res.writeHead(409, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'Este pedido ya tiene una factura', invoice: existing }));
+        }
+
+        // Folio: count per business
+        const bizInvoices = db.invoices.filter(i => i.businessId === biz.id);
+        const folio = bizInvoices.length + 1;
+
+        const cfdiPayload = facturama.buildOrderCfdi({
+          business: biz, order, folio, customerRfc, customerName, customerFiscalRegime, customerTaxZip, cfdiUse
+        });
+
+        const result = await facturama.createCfdi(cfdiPayload);
+
+        const invoice = {
+          id: Date.now().toString(),
+          orderId,
+          businessId: biz.id,
+          facturamaId: result.Id,
+          uuid: result.Complement?.TaxStamp?.Uuid,
+          folio,
+          serie: 'CRAVI',
+          total: order.total,
+          status: 'vigente',
+          cfdiType: 'issued',
+          createdAt: new Date(),
+          customerRfc: customerRfc || 'XAXX010101000',
+          customerName: customerName || 'PUBLICO EN GENERAL'
+        };
+        db.invoices.push(invoice);
+        order.invoiceId = invoice.id;
+        saveDb();
+
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, invoice, facturamaData: result }));
+      } catch (e) {
+        console.error('[Billing/Invoice] Error:', e);
+        const msg = e.body?.ModelState ? JSON.stringify(e.body.ModelState) : (e.body?.Message || e.message || 'Error al timbrar CFDI');
+        res.writeHead(e.statusCode || 500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: msg }));
+      }
+    });
+  }
+
+  // List invoices for a business
+  else if (req.method === 'GET' && url.pathname === '/api/billing/invoices') {
+    const businessId = url.searchParams.get('businessId');
+    const invoices = businessId ? db.invoices.filter(i => i.businessId === businessId) : db.invoices;
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(invoices));
+  }
+
+  // Get single invoice
+  else if (req.method === 'GET' && url.pathname.startsWith('/api/billing/invoice/')) {
+    const invoiceId = url.pathname.split('/').pop();
+    const invoice = db.invoices.find(i => i.id === invoiceId);
+    if (!invoice) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Factura no encontrada' }));
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(invoice));
+  }
+
+  // Download invoice PDF or XML
+  else if (req.method === 'GET' && url.pathname.startsWith('/api/billing/download/')) {
+    const parts = url.pathname.split('/');
+    const invoiceId = parts[parts.length - 2];
+    const format = parts[parts.length - 1]; // pdf, xml, html
+    const invoice = db.invoices.find(i => i.id === invoiceId);
+    if (!invoice || !invoice.facturamaId) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Factura no encontrada' }));
+    }
+    try {
+      const data = await facturama.downloadCfdi(invoice.cfdiType || 'issued', invoice.facturamaId, format);
+      const contentStr = data.Content || data.content || data;
+      const buffer = Buffer.from(contentStr, 'base64');
+      const mimeMap = { pdf: 'application/pdf', xml: 'application/xml', html: 'text/html' };
+      const mime = mimeMap[format] || 'application/octet-stream';
+      res.writeHead(200, {
+        'Content-Type': mime,
+        'Content-Disposition': `attachment; filename="factura-${invoice.serie}-${invoice.folio}.${format}"`
+      });
+      res.end(buffer);
+    } catch (e) {
+      console.error('[Billing/Download] Error:', e);
+      res.writeHead(e.statusCode || 500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.body?.Message || 'Error al descargar' }));
+    }
+  }
+
+  // Cancel invoice
+  else if (req.method === 'DELETE' && url.pathname.startsWith('/api/billing/invoice/')) {
+    const invoiceId = url.pathname.split('/').pop();
+    const motive = url.searchParams.get('motive') || '02';
+    const invoice = db.invoices.find(i => i.id === invoiceId);
+    if (!invoice || !invoice.facturamaId) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Factura no encontrada' }));
+    }
+    try {
+      await facturama.cancelCfdi(invoice.cfdiType || 'issued', invoice.facturamaId, motive);
+      invoice.status = 'cancelada';
+      saveDb();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, message: 'Factura cancelada' }));
+    } catch (e) {
+      console.error('[Billing/Cancel] Error:', e);
+      res.writeHead(e.statusCode || 500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.body?.Message || 'Error al cancelar' }));
+    }
+  }
+
   // --- CEO DASHBOARD ENDPOINTS ---
   else if (req.method === 'POST' && url.pathname === '/api/ceo/login') {
     let body = '';

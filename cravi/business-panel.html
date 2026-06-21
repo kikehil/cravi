@@ -241,6 +241,9 @@ html,body{height:100%;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-
       <button class="nav-item" onclick="showScreen('stats')">
         <span class="nav-icon">📊</span> Estadísticas
       </button>
+      <button class="nav-item" onclick="showScreen('billing')">
+        <span class="nav-icon">🧾</span> Facturación
+      </button>
       <button class="nav-item" onclick="showScreen('settings')">
         <span class="nav-icon">⚙️</span> Configuración
       </button>
@@ -421,6 +424,80 @@ html,body{height:100%;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-
         </div>
       </div>
 
+      <!-- ══════════════════ FACTURACIÓN ══════════════════ -->
+      <div class="screen fade-up" id="screen-billing">
+
+        <!-- CSD Status Banner -->
+        <div id="billing-csd-status" style="margin-bottom:16px"></div>
+
+        <!-- CSD Config Card -->
+        <div class="card" style="max-width:560px;margin-bottom:20px" id="billing-csd-card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">🔐 Certificado de Sello Digital (CSD)</div>
+              <div class="card-sub">Necesario para timbrar facturas. Se carga una sola vez por RFC.</div>
+            </div>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
+            <div class="modal-field"><label>RFC del emisor *</label><input id="bill-rfc" class="modal-inp" placeholder="XAXX010101000" maxlength="13" style="text-transform:uppercase"></div>
+            <div class="modal-field"><label>Razón social (nombre fiscal) *</label><input id="bill-legal-name" class="modal-inp" placeholder="MI EMPRESA SA DE CV"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="modal-field">
+                <label>Régimen fiscal *</label>
+                <select id="bill-fiscal-regime" class="modal-inp">
+                  <option value="601">601 – General de Ley Personas Morales</option>
+                  <option value="603">603 – Personas Morales con Fines no Lucrativos</option>
+                  <option value="605">605 – Sueldos y Salarios e Ingresos Asimilados</option>
+                  <option value="606">606 – Arrendamiento</option>
+                  <option value="608">608 – Demás Ingresos</option>
+                  <option value="610">610 – Residentes en el Extranjero</option>
+                  <option value="611">611 – Ingresos por Dividendos</option>
+                  <option value="612" selected>612 – Personas Físicas con Actividades Empresariales</option>
+                  <option value="614">614 – Ingresos por Intereses</option>
+                  <option value="616">616 – Sin obligaciones fiscales</option>
+                  <option value="620">620 – Sociedades Cooperativas de Producción</option>
+                  <option value="621">621 – Incorporación Fiscal</option>
+                  <option value="622">622 – Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras</option>
+                  <option value="623">623 – Opcional para Grupos de Sociedades</option>
+                  <option value="624">624 – Coordinados</option>
+                  <option value="628">628 – Hidrocarburos</option>
+                  <option value="629">629 – De los Regímenes Fiscales Preferentes</option>
+                  <option value="630">630 – Enajenación de Acciones en Bolsa</option>
+                </select>
+              </div>
+              <div class="modal-field"><label>Código postal fiscal *</label><input id="bill-tax-zip" class="modal-inp" placeholder="89000" maxlength="5"></div>
+            </div>
+            <div class="modal-field">
+              <label>Archivo .cer (Certificado) *</label>
+              <input type="file" id="bill-cer-file" accept=".cer" class="modal-inp" style="padding:6px">
+            </div>
+            <div class="modal-field">
+              <label>Archivo .key (Llave privada) *</label>
+              <input type="file" id="bill-key-file" accept=".key" class="modal-inp" style="padding:6px">
+            </div>
+            <div class="modal-field"><label>Contraseña de la llave privada *</label><input id="bill-key-pass" class="modal-inp" type="password" placeholder="••••••••"></div>
+            <div style="display:flex;justify-content:flex-end;gap:10px">
+              <button class="btn btn-primary" onclick="uploadCsd()">Cargar CSD</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoices List Card -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">🧾 Facturas emitidas</div>
+              <div class="card-sub">CFDIs timbrados a través de Cravi</div>
+            </div>
+            <button class="btn btn-sm btn-secondary" onclick="refreshInvoices()">↺ Actualizar</button>
+          </div>
+          <div id="billing-invoices-list" style="padding:8px 0">
+            <div class="empty"><div class="empty-icon">📄</div><div>No hay facturas aún.<br><small>Las facturas se generan desde el detalle de un pedido.</small></div></div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- ══════════════════ CONFIGURACIÓN ══════════════════ -->
       <div class="screen fade-up" id="screen-settings">
         <div class="card" style="max-width:560px">
@@ -517,6 +594,56 @@ html,body{height:100%;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeProdModal()">Cancelar</button>
       <button class="btn btn-primary" id="btn-save-product">Guardar producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── INVOICE MODAL ── -->
+<div class="modal-overlay hide" id="invoice-modal-overlay" onclick="closeInvoiceModal(event)">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Generar Factura</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px" id="invoice-modal-order-info"></div>
+      </div>
+      <button class="modal-close" onclick="closeInvoiceModal()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+      <div style="background:var(--bg);border-radius:10px;padding:12px;font-size:13px;color:var(--t2)">
+        💡 Si el cliente no proporciona datos fiscales, se facturará a <strong>Público en General</strong>.
+      </div>
+      <div class="modal-field">
+        <label>RFC del cliente</label>
+        <input id="inv-rfc" class="modal-inp" placeholder="XAXX010101000 (Público en general)" maxlength="13" style="text-transform:uppercase">
+      </div>
+      <div class="modal-field"><label>Nombre fiscal del cliente</label><input id="inv-name" class="modal-inp" placeholder="Nombre o Razón Social"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="modal-field">
+          <label>Régimen fiscal</label>
+          <select id="inv-regime" class="modal-inp">
+            <option value="">-- Público en General --</option>
+            <option value="601">601 – General PF Morales</option>
+            <option value="612">612 – Act. Empresariales PF</option>
+            <option value="616">616 – Sin obligaciones</option>
+            <option value="621">621 – Incorporación Fiscal</option>
+          </select>
+        </div>
+        <div class="modal-field"><label>CP fiscal</label><input id="inv-zip" class="modal-inp" placeholder="89000" maxlength="5"></div>
+      </div>
+      <div class="modal-field">
+        <label>Uso del CFDI</label>
+        <select id="inv-uso" class="modal-inp">
+          <option value="S01">S01 – Sin efectos fiscales</option>
+          <option value="G01">G01 – Adquisición de mercancias</option>
+          <option value="G03">G03 – Gastos en general</option>
+          <option value="D01">D01 – Honorarios médicos</option>
+          <option value="I01">I01 – Construcciones</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeInvoiceModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-create-invoice" onclick="createInvoice()">Timbrar CFDI</button>
     </div>
   </div>
 </div>
@@ -817,11 +944,24 @@ function showScreen(id) {
   if(target) target.classList.add('active');
   
   const navItems = document.querySelectorAll('.sb-nav .nav-item');
-  const navMap = {dashboard:0, orders:1, products:2, stats:3, settings:4};
+  const navMap = {dashboard:0, orders:1, products:2, stats:3, billing:4, settings:5};
   if(navItems[navMap[id]]) navItems[navMap[id]].classList.add('active');
-  
-  const titles = {dashboard:'Dashboard', orders:'Gestión de pedidos', products:'Mis productos', stats:'Estadísticas', settings:'Configuración'};
+
+  const titles = {dashboard:'Dashboard', orders:'Gestión de pedidos', products:'Mis productos', stats:'Estadísticas', billing:'Facturación', settings:'Configuración'};
   document.getElementById('tb-title').textContent = titles[id] || id;
+
+  if (id === 'billing') {
+    refreshInvoices();
+    if (business && business.csdActive) {
+      document.getElementById('billing-csd-status').innerHTML = `<div style="background:var(--grl);border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;color:var(--gr);font-weight:600;font-size:13px">✅ CSD activo para RFC ${business.rfc}</div>`;
+    }
+    if (business && business.rfc) {
+      document.getElementById('bill-rfc').value = business.rfc;
+      document.getElementById('bill-legal-name').value = business.legalName || '';
+      if (business.fiscalRegime) document.getElementById('bill-fiscal-regime').value = business.fiscalRegime;
+      document.getElementById('bill-tax-zip').value = business.taxZipCode || '';
+    }
+  }
 }
 
 // Modals
@@ -860,7 +1000,14 @@ function openOrderModalById(id) {
   } else if(order.status === 'EN_CAMINO') {
     actions.innerHTML += `<button class="btn btn-primary" onclick="updateOrderStatus('${id}', 'ENTREGADO')">Marcar entregado</button>`;
   }
-  
+
+  // Invoice button: show if business has RFC and order not already invoiced
+  if (business && business.rfc && !order.invoiceId) {
+    actions.innerHTML += `<button class="btn btn-sm" style="background:#eff6ff;color:#2563eb;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;margin-left:auto" onclick="closeOrderModal();openInvoiceModal('${id}')">🧾 Facturar</button>`;
+  } else if (order.invoiceId) {
+    actions.innerHTML += `<span style="font-size:12px;color:var(--gr);font-weight:600;margin-left:auto">✅ Facturada</span>`;
+  }
+
   document.getElementById('order-modal-overlay').classList.remove('hide');
 }
 
@@ -973,6 +1120,157 @@ document.getElementById('settings-form').onsubmit = async (e) => {
     refreshData();
   }
 };
+
+// ── BILLING ──────────────────────────────────────────────
+let invoices = [];
+let pendingInvoiceOrderId = null;
+
+async function refreshInvoices() {
+  try {
+    invoices = await fetch(`${API_URL}/api/billing/invoices?businessId=${businessId}`).then(r => r.json());
+    renderInvoices();
+  } catch(e) { console.error('Error cargando facturas', e); }
+}
+
+function renderInvoices() {
+  const el = document.getElementById('billing-invoices-list');
+  if (!invoices.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📄</div><div>No hay facturas aún.<br><small>Las facturas se generan desde el detalle de un pedido.</small></div></div>';
+    return;
+  }
+  el.innerHTML = invoices.map(inv => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--bd);gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:700">CRAVI-${inv.folio} <span style="font-size:11px;font-weight:500;color:var(--t3)">· ${inv.uuid ? inv.uuid.substring(0,8)+'...' : 'Sin UUID'}</span></div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px">${inv.customerName || 'Público en General'} · ${new Date(inv.createdAt).toLocaleDateString('es-MX')}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span style="font-size:13px;font-weight:700">$${(inv.total||0).toFixed(2)}</span>
+        <span class="tag-pill ${inv.status==='vigente'?'tp-green':'tp-gray'}">${inv.status}</span>
+        <button class="btn btn-sm btn-secondary" onclick="downloadInv('${inv.id}','pdf')" title="PDF">PDF</button>
+        <button class="btn btn-sm btn-secondary" onclick="downloadInv('${inv.id}','xml')" title="XML">XML</button>
+        ${inv.status==='vigente' ? `<button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer" onclick="cancelInv('${inv.id}')">Cancelar</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+async function uploadCsd() {
+  const rfc = document.getElementById('bill-rfc').value.trim().toUpperCase();
+  const legalName = document.getElementById('bill-legal-name').value.trim().toUpperCase();
+  const fiscalRegime = document.getElementById('bill-fiscal-regime').value;
+  const taxZipCode = document.getElementById('bill-tax-zip').value.trim();
+  const cerFile = document.getElementById('bill-cer-file').files[0];
+  const keyFile = document.getElementById('bill-key-file').files[0];
+  const pass = document.getElementById('bill-key-pass').value;
+
+  if (!rfc || !legalName || !cerFile || !keyFile || !pass || !taxZipCode) {
+    alert('Completa todos los campos requeridos'); return;
+  }
+
+  const toBase64 = f => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  });
+
+  try {
+    const [certificate, privateKey] = await Promise.all([toBase64(cerFile), toBase64(keyFile)]);
+    const btn = document.querySelector('#billing-csd-card .btn-primary');
+    btn.textContent = 'Cargando...'; btn.disabled = true;
+
+    const res = await fetch(`${API_URL}/api/billing/csd`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ businessId, rfc, legalName, fiscalRegime, taxZipCode, certificate, privateKey, privateKeyPassword: pass })
+    });
+    const data = await res.json();
+    btn.textContent = 'Cargar CSD'; btn.disabled = false;
+
+    if (res.ok) {
+      document.getElementById('billing-csd-status').innerHTML = `<div style="background:var(--grl);border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;color:var(--gr);font-weight:600;font-size:13px">✅ CSD cargado correctamente para RFC ${rfc}</div>`;
+      business.rfc = rfc; business.csdActive = true;
+    } else {
+      alert('Error: ' + (data.error || 'Error al cargar CSD'));
+    }
+  } catch(e) {
+    alert('Error al procesar archivos: ' + e.message);
+    document.querySelector('#billing-csd-card .btn-primary').textContent = 'Cargar CSD';
+    document.querySelector('#billing-csd-card .btn-primary').disabled = false;
+  }
+}
+
+function openInvoiceModal(orderId) {
+  pendingInvoiceOrderId = orderId;
+  const order = orders.find(o => o.id === orderId);
+  document.getElementById('invoice-modal-order-info').textContent = order ? `Pedido de ${order.customerName} · $${order.total} MXN` : '';
+  document.getElementById('inv-rfc').value = '';
+  document.getElementById('inv-name').value = '';
+  document.getElementById('inv-regime').value = '';
+  document.getElementById('inv-zip').value = '';
+  document.getElementById('inv-uso').value = 'S01';
+  document.getElementById('invoice-modal-overlay').classList.remove('hide');
+}
+
+function closeInvoiceModal(e) {
+  if (e && e.target !== document.getElementById('invoice-modal-overlay')) return;
+  document.getElementById('invoice-modal-overlay').classList.add('hide');
+  pendingInvoiceOrderId = null;
+}
+
+async function createInvoice() {
+  if (!pendingInvoiceOrderId) return;
+  if (!business.rfc) {
+    alert('Primero configura el CSD en la sección Facturación'); return;
+  }
+  const btn = document.getElementById('btn-create-invoice');
+  btn.textContent = 'Timbrando...'; btn.disabled = true;
+
+  const body = {
+    orderId: pendingInvoiceOrderId,
+    businessId,
+    customerRfc: document.getElementById('inv-rfc').value.trim().toUpperCase() || null,
+    customerName: document.getElementById('inv-name').value.trim().toUpperCase() || null,
+    customerFiscalRegime: document.getElementById('inv-regime').value || null,
+    customerTaxZip: document.getElementById('inv-zip').value.trim() || null,
+    cfdiUse: document.getElementById('inv-uso').value
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/api/billing/invoice`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    btn.textContent = 'Timbrar CFDI'; btn.disabled = false;
+
+    if (res.ok) {
+      document.getElementById('invoice-modal-overlay').classList.add('hide');
+      alert(`✅ CFDI timbrado correctamente\nFolio: CRAVI-${data.invoice.folio}\nUUID: ${data.invoice.uuid || 'Ver en Facturama'}`);
+      await refreshInvoices();
+    } else {
+      alert('Error al timbrar: ' + (data.error || 'Error desconocido'));
+    }
+  } catch(e) {
+    btn.textContent = 'Timbrar CFDI'; btn.disabled = false;
+    alert('Error: ' + e.message);
+  }
+}
+
+async function downloadInv(invoiceId, format) {
+  window.open(`${API_URL}/api/billing/download/${invoiceId}/${format}`, '_blank');
+}
+
+async function cancelInv(invoiceId) {
+  if (!confirm('¿Cancelar esta factura? Esta acción no se puede deshacer.')) return;
+  try {
+    const res = await fetch(`${API_URL}/api/billing/invoice/${invoiceId}?motive=02`, { method: 'DELETE' });
+    const data = await res.json();
+    if (res.ok) { alert('Factura cancelada'); await refreshInvoices(); }
+    else alert('Error: ' + data.error);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── END BILLING ───────────────────────────────────────────
 
 const LOGO_B64 = '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';
 
