@@ -34,6 +34,7 @@ function request(method, path, body) {
         }
       });
     });
+    req.setTimeout(30000, () => { req.destroy(new Error('Timeout: Facturama no respondió en 30s')); });
     req.on('error', reject);
     if (bodyStr) req.write(bodyStr);
     req.end();
