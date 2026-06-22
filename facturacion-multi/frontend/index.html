@@ -126,8 +126,42 @@ tr:hover td{background:#fafafa}
 
 /* ── CONCEPT ROW ── */
 .concept-row{display:grid;grid-template-columns:3fr 1fr 1fr auto;gap:8px;align-items:end}
+.concept-codes{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:4px}
 .concept-row .btn-icon{background:var(--redl);color:var(--red);border:none;border-radius:6px;padding:8px;cursor:pointer;font-size:14px;height:36px;width:36px;display:flex;align-items:center;justify-content:center}
 </style>
+
+<!-- SAT Catalogs datalists -->
+<datalist id="dl-prodserv">
+  <option value="01010101">01010101 — Sin clasificar (genérico)</option>
+  <option value="80141600">80141600 — Consultoría empresarial</option>
+  <option value="80111500">80111500 — Servicios de TI</option>
+  <option value="81112000">81112000 — Desarrollo de software</option>
+  <option value="43232400">43232400 — Software (licencias)</option>
+  <option value="43211500">43211500 — Computadoras y equipo</option>
+  <option value="80131500">80131500 — Contabilidad y auditoría</option>
+  <option value="80141700">80141700 — Servicios administrativos</option>
+  <option value="80101500">80101500 — Publicidad y marketing</option>
+  <option value="72154000">72154000 — Reparación y mantenimiento</option>
+  <option value="78102200">78102200 — Transporte de carga</option>
+  <option value="85121800">85121800 — Servicios médicos</option>
+  <option value="90111500">90111500 — Servicios de contabilidad pública</option>
+  <option value="73152100">73152100 — Restaurante / alimentos</option>
+  <option value="56101500">56101500 — Arrendamiento de inmuebles</option>
+  <option value="31000000">31000000 — Materias primas y materiales</option>
+  <option value="50000000">50000000 — Alimentos, bebidas y tabaco</option>
+</datalist>
+<datalist id="dl-unidad">
+  <option value="E48">E48 — Unidad de servicio</option>
+  <option value="H87">H87 — Pieza</option>
+  <option value="ACT">ACT — Actividad</option>
+  <option value="MO">MO — Mes</option>
+  <option value="DAY">DAY — Día</option>
+  <option value="HUR">HUR — Hora</option>
+  <option value="KGM">KGM — Kilogramo</option>
+  <option value="LTR">LTR — Litro</option>
+  <option value="MTR">MTR — Metro</option>
+  <option value="XBX">XBX — Caja</option>
+</datalist>
 </head>
 <body>
 
@@ -419,7 +453,7 @@ tr:hover td{background:#fafafa}
 const API = '';
 let emisores = [];
 let facturas = [];
-let conceptos = [{ desc: '', qty: 1, price: 0, code: '01010101' }];
+let conceptos = [{ desc: '', qty: 1, price: 0, code: '01010101', unit: 'E48' }];
 
 // ── INIT ──────────────────────────────────────────────
 async function init() {
@@ -560,7 +594,7 @@ async function eliminarEmisor(rfc) {
 
 // ── CONCEPTOS ──────────────────────────────────────────
 function addConcept(first = false) {
-  if (!first) conceptos.push({ desc: '', qty: 1, price: 0, code: '01010101' });
+  if (!first) conceptos.push({ desc: '', qty: 1, price: 0, code: '01010101', unit: 'E48' });
   renderConceptos();
 }
 
@@ -573,20 +607,34 @@ function removeConcept(i) {
 function renderConceptos() {
   const wrap = document.getElementById('concepts-wrap');
   wrap.innerHTML = conceptos.map((c, i) => `
-    <div class="concept-row" id="concept-row-${i}">
-      <div class="field"><label>${i===0?'Descripción *':''}</label>
-        <input class="inp" placeholder="Descripción del concepto" value="${c.desc}" oninput="conceptos[${i}].desc=this.value;calcTotals()">
+    <div style="border:1px solid var(--bd);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px">
+      <div class="concept-row">
+        <div class="field"><label>${i===0?'Descripción *':''}</label>
+          <input class="inp" placeholder="Descripción del concepto" value="${escHtml(c.desc)}" oninput="conceptos[${i}].desc=this.value;calcTotals()">
+        </div>
+        <div class="field"><label>${i===0?'Cantidad':''}</label>
+          <input class="inp" type="number" min="0.01" step="0.01" value="${c.qty}" oninput="conceptos[${i}].qty=parseFloat(this.value)||1;calcTotals()">
+        </div>
+        <div class="field"><label>${i===0?'Precio unit. (sin IVA)':''}</label>
+          <input class="inp" type="number" min="0" step="0.01" value="${c.price}" oninput="conceptos[${i}].price=parseFloat(this.value)||0;calcTotals()">
+        </div>
+        <button class="btn-icon" onclick="removeConcept(${i})" style="margin-top:${i===0?'18':'0'}px" title="Eliminar concepto">✕</button>
       </div>
-      <div class="field"><label>${i===0?'Cantidad':''}</label>
-        <input class="inp" type="number" min="0.01" step="0.01" value="${c.qty}" oninput="conceptos[${i}].qty=parseFloat(this.value)||1;calcTotals()">
+      <div class="concept-codes">
+        <div class="field"><label style="font-size:10px;color:var(--t2)">Clave Prod/Serv (c_ClaveProdServ)</label>
+          <input class="inp" list="dl-prodserv" placeholder="Ej. 80141600" value="${escHtml(c.code)}"
+            oninput="conceptos[${i}].code=this.value.split(' ')[0].split('—')[0].trim();this.value=conceptos[${i}].code" style="font-size:12px">
+        </div>
+        <div class="field"><label style="font-size:10px;color:var(--t2)">Clave Unidad (c_ClaveUnidad)</label>
+          <input class="inp" list="dl-unidad" placeholder="Ej. E48" value="${escHtml(c.unit)}"
+            oninput="conceptos[${i}].unit=this.value.split(' ')[0].split('—')[0].trim();this.value=conceptos[${i}].unit" style="font-size:12px">
+        </div>
       </div>
-      <div class="field"><label>${i===0?'Precio unit. (sin IVA)':''}</label>
-        <input class="inp" type="number" min="0" step="0.01" value="${c.price}" oninput="conceptos[${i}].price=parseFloat(this.value)||0;calcTotals()">
-      </div>
-      <button class="btn-icon" onclick="removeConcept(${i})" style="margin-top:${i===0?'18':'0'}px" title="Eliminar concepto">✕</button>
     </div>`).join('');
   calcTotals();
 }
+
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 function calcTotals() {
   const sub = conceptos.reduce((s, c) => s + (parseFloat(c.qty)||1) * (parseFloat(c.price)||0), 0);
@@ -620,14 +668,14 @@ async function crearFactura() {
     serie: document.getElementById('n-serie').value || 'F',
     paymentForm: document.getElementById('n-pago').value,
     currency: document.getElementById('n-moneda').value,
-    items: validConceptos.map(c => ({ description: c.desc, quantity: c.qty, unitPrice: c.price, productCode: c.code }))
+    items: validConceptos.map(c => ({ description: c.desc, quantity: c.qty, unitPrice: c.price, productCode: c.code, unitCode: c.unit || 'E48' }))
   };
 
   try {
     const res = await post('/api/facturas', body);
     showAlert('nueva-alert', 'success',
       `✅ CFDI timbrado — Folio: <strong>${res.invoice.serie}-${res.invoice.folio}</strong>${res.invoice.uuid ? ` · UUID: ${res.invoice.uuid.substring(0,8)}...` : ''}`);
-    conceptos = [{ desc: '', qty: 1, price: 0, code: '01010101' }];
+    conceptos = [{ desc: '', qty: 1, price: 0, code: '01010101', unit: 'E48' }];
     renderConceptos();
     await loadFacturas();
   } catch (e) {
