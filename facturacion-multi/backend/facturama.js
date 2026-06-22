@@ -91,15 +91,18 @@ function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = 
   const rootTotal   = Math.round((rootSubtotal + rootTaxes) * 100) / 100;
 
   const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const year = String(now.getFullYear());
+  // SAT requires date in Mexico City local time (America/Mexico_City)
+  const mxDate = new Date().toLocaleString('sv-SE', { timeZone: 'America/Mexico_City' }).replace(' ', 'T');
+  const mxNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+  const month = String(mxNow.getMonth() + 1).padStart(2, '0');
+  const year = String(mxNow.getFullYear());
 
   const payload = {
     NameId: '1',
     CfdiType: 'I',
     Serie: serie,
     Folio: String(folio),
-    Date: now.toISOString().slice(0, 19),
+    Date: mxDate,
     PaymentForm: paymentForm,
     PaymentMethod: 'PUE',
     Currency: currency,
