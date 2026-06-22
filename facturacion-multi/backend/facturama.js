@@ -21,6 +21,7 @@ function request(method, path, body) {
         ...(bodyStr && { 'Content-Length': Buffer.byteLength(bodyStr) })
       }
     };
+    console.log(`[Facturama] ${method} https://${host}${path}`);
     const req = https.request(options, res => {
       let data = '';
       res.on('data', c => { data += c; });
@@ -61,7 +62,9 @@ const cancelCfdi = (type, id, motive = '02', uuidReplacement = null) => {
   return request('DELETE', path);
 };
 const downloadCfdi = (type, id, format) =>
-  request('GET', `/api-lite/cfdis/${type}/${id}/${format}`);
+  request('GET', `/api-lite/cfdis/${type}/${id}/${format}`)
+    .catch(() => request('GET', `/api-lite/cfdis/${id}/${format}`))
+    .catch(() => request('GET', `/api-lite/3/cfdis/${type}/${id}/${format}`));
 
 // ── Builder ──────────────────────────────────────────────────
 function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = '01', currency = 'MXN', expeditionPlace }) {
