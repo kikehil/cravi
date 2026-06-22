@@ -139,7 +139,15 @@ app.get('/api/facturas/:id/download/:format', async (req, res) => {
   if (!inv || !inv.facturamaId) return res.status(404).json({ error: 'Factura no encontrada' });
   const { format } = req.params;
   try {
-    const data = await f.downloadCfdi(inv.cfdiType || 'issued', inv.facturamaId, format);
+    // Try facturamaId first, then UUID as fallback
+    let data;
+    try {
+      data = await f.downloadCfdi(inv.cfdiType || 'issued', inv.facturamaId, format);
+    } catch (e1) {
+      if (inv.uuid) {
+        data = await f.downloadCfdi(inv.cfdiType || 'issued', inv.uuid, format);
+      } else throw e1;
+    }
     const content = data.Content || data.content || data;
     const buffer = Buffer.from(content, 'base64');
     const mime = { pdf: 'application/pdf', xml: 'application/xml', html: 'text/html' }[format] || 'application/octet-stream';
