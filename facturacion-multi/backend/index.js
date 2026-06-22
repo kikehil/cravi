@@ -147,7 +147,8 @@ app.get('/api/facturas/:id/download/:format', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${inv.serie}-${inv.folio}.${format}"`);
     res.send(buffer);
   } catch (e) {
-    res.status(e.statusCode || 500).json({ error: e.body?.Message || 'Error al descargar' });
+    console.error('Download error:', JSON.stringify(e));
+    res.status(e.statusCode || 500).json({ error: e.body?.Message || e.message || 'Error al descargar' });
   }
 });
 
