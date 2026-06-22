@@ -71,6 +71,7 @@ function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = 
     const unitPrice = Math.round(parseFloat(item.unitPrice) * 100) / 100;
     const subtotal = Math.round(unitPrice * qty * 100) / 100;
     const ivaTotal = Math.round(subtotal * 0.16 * 100) / 100;
+    const itemTotal = Math.round((subtotal + ivaTotal) * 100) / 100;
     return {
       ProductCode: item.productCode || '01010101',
       Description: item.description,
@@ -78,10 +79,15 @@ function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = 
       Quantity: qty,
       UnitPrice: unitPrice,
       Subtotal: subtotal,
+      Total: itemTotal,
       TaxObject: '02',
       Taxes: [{ Total: ivaTotal, Name: 'IVA', Base: subtotal, Rate: 0.16, IsRetention: false }]
     };
   });
+
+  const rootSubtotal = Math.round(cfdiItems.reduce((s, i) => s + i.Subtotal, 0) * 100) / 100;
+  const rootTaxes   = Math.round(cfdiItems.reduce((s, i) => s + i.Taxes[0].Total, 0) * 100) / 100;
+  const rootTotal   = Math.round((rootSubtotal + rootTaxes) * 100) / 100;
 
   const now = new Date();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -97,6 +103,8 @@ function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = 
     PaymentMethod: 'PUE',
     Currency: currency,
     ExpeditionPlace: expeditionPlace || issuer.taxZipCode || '89000',
+    Subtotal: rootSubtotal,
+    Total: rootTotal,
     Issuer: {
       FiscalRegime: issuer.fiscalRegime,
       Rfc: issuer.rfc.toUpperCase(),
