@@ -35,8 +35,19 @@ app.post('/api/emisores', async (req, res) => {
   }
   try {
     await f.uploadCsd(rfc.toUpperCase(), certificate, privateKey, privateKeyPassword);
+    // Fetch CSD details to get exact name from the certificate
+    let certName = legalName.toUpperCase();
+    try {
+      const csdInfo = await f.getCsd(rfc.toUpperCase());
+      console.log('CSD info from Facturama:', JSON.stringify(csdInfo));
+      if (csdInfo.TaxpayerName || csdInfo.Name || csdInfo.RazonSocial) {
+        certName = (csdInfo.TaxpayerName || csdInfo.Name || csdInfo.RazonSocial).toUpperCase();
+      }
+    } catch (e2) {
+      console.log('Could not fetch CSD details, using provided name:', e2.message || e2);
+    }
     const existing = db.issuers.findIndex(i => i.rfc === rfc.toUpperCase());
-    const issuer = { rfc: rfc.toUpperCase(), legalName: legalName.toUpperCase(), fiscalRegime, taxZipCode, csdActive: true, createdAt: new Date() };
+    const issuer = { rfc: rfc.toUpperCase(), legalName: certName, fiscalRegime, taxZipCode, csdActive: true, createdAt: new Date() };
     if (existing > -1) db.issuers[existing] = { ...db.issuers[existing], ...issuer };
     else db.issuers.push(issuer);
     save();
@@ -90,6 +101,7 @@ app.post('/api/facturas', async (req, res) => {
   const payload = f.buildCfdi({ issuer, receiver: receiver || {}, items, folio, serie, paymentForm, currency });
 
   try {
+    console.log('CFDI Issuer payload:', JSON.stringify(payload.Issuer));
     const result = await f.createCfdi(payload);
     const invoice = {
       id: Date.now().toString(),
