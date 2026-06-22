@@ -157,8 +157,15 @@ app.get('/api/facturas/:id/download/:format', async (req, res) => {
       Receiver: { Rfc: inv.receiverRfc, Name: inv.receiverName, CfdiUse: 'S01' },
       Complement: { TaxStamp: { Uuid: inv.uuid || 'N/A' } }
     };
-    const b64 = format === 'xml' ? fakeXmlBase64(fakeCfdi) : fakePdfBase64(fakeCfdi);
-    sendBuffer(b64);
+    if (format === 'xml') {
+      sendBuffer(fakeXmlBase64(fakeCfdi));
+    } else {
+      // Sandbox: PDF not available, serve as plain text
+      const txt = Buffer.from(fakePdfBase64(fakeCfdi), 'base64').toString('utf8');
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${inv.serie}-${inv.folio}-sandbox.txt"`);
+      res.send(txt);
+    }
   }
 });
 
