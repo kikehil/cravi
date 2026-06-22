@@ -83,12 +83,16 @@ function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = 
     };
   });
 
-  return {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = String(now.getFullYear());
+
+  const payload = {
     NameId: '1',
     CfdiType: 'I',
     Serie: serie,
     Folio: String(folio),
-    Date: new Date().toISOString().slice(0, 19),
+    Date: now.toISOString().slice(0, 19),
     PaymentForm: paymentForm,
     PaymentMethod: 'PUE',
     Currency: currency,
@@ -103,6 +107,17 @@ function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = 
       : { Rfc: receiver.rfc.toUpperCase(), Name: receiver.name.toUpperCase(), FiscalRegime: receiver.fiscalRegime, TaxZipCode: receiver.taxZipCode, CfdiUse: receiver.cfdiUse || 'G03' },
     Items: cfdiItems
   };
+
+  // CFDI 4.0: InformacionGlobal es obligatorio cuando el receptor es Público en General
+  if (isPublic) {
+    payload.GlobalInformation = {
+      Periodicity: '04',   // 04 = Mensual
+      Months: month,
+      Year: year
+    };
+  }
+
+  return payload;
 }
 
 module.exports = { uploadCsd, getCsd, deleteCsd, createCfdi, getCfdi, listCfdis, cancelCfdi, downloadCfdi, buildCfdi };
