@@ -67,15 +67,22 @@ const downloadCfdi = (type, id, format) =>
     .catch(() => request('GET', `/api-lite/3/cfdis/${type}/${id}/${format}`));
 
 // ── Builder ──────────────────────────────────────────────────
-function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = '01', currency = 'MXN', expeditionPlace }) {
+function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = '01', currency = 'MXN',
+                     expeditionPlace, cfdiType = 'I', relatedUuid = null, discount = 0, tip = 0, orderRef = null }) {
   const isPublic = !receiver.rfc || receiver.rfc === 'XAXX010101000';
 
   const cfdiItems = items.map(item => {
-    const qty = parseFloat(item.quantity) || 1;
-    const unitPrice = Math.round(parseFloat(item.unitPrice) * 100) / 100;
-    const subtotal = Math.round(unitPrice * qty * 100) / 100;
-    const ivaTotal = Math.round(subtotal * 0.16 * 100) / 100;
-    const itemTotal = Math.round((subtotal + ivaTotal) * 100) / 100;
+    const qty        = parseFloat(item.quantity) || 1;
+    const unitPrice  = Math.round(parseFloat(item.unitPrice) * 100) / 100;
+    const subtotal   = Math.round(unitPrice * qty * 100) / 100;
+    const ivaRate    = item.ivaRate !== undefined ? parseFloat(item.ivaRate) : 0.16;
+    const ivaTotal   = Math.round(subtotal * ivaRate * 100) / 100;
+    const itemTotal  = Math.round((subtotal + ivaTotal) * 100) / 100;
+
+    const taxes = ivaRate > 0
+      ? [{ Total: ivaTotal, Name: 'IVA', Base: subtotal, Rate: ivaRate, IsRetention: false }]
+      : [];
+
     return {
       ProductCode: item.productCode || '01010101',
       Description: item.description,
@@ -84,14 +91,30 @@ function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = 
       UnitPrice: unitPrice,
       Subtotal: subtotal,
       Total: itemTotal,
-      TaxObject: '02',
-      Taxes: [{ Total: ivaTotal, Name: 'IVA', Base: subtotal, Rate: 0.16, IsRetention: false }]
+      TaxObject: ivaRate > 0 ? '02' : '01',
+      ...(taxes.length && { Taxes: taxes })
     };
   });
 
+  // Tip is a separate non-taxed concept (propina)
+  if (tip > 0) {
+    const tipAmt = Math.round(parseFloat(tip) * 100) / 100;
+    cfdiItems.push({
+      ProductCode: '90111800',
+      Description: 'Propina',
+      UnitCode: 'ACT',
+      Quantity: 1,
+      UnitPrice: tipAmt,
+      Subtotal: tipAmt,
+      Total: tipAmt,
+      TaxObject: '01'
+    });
+  }
+
   const rootSubtotal = Math.round(cfdiItems.reduce((s, i) => s + i.Subtotal, 0) * 100) / 100;
-  const rootTaxes   = Math.round(cfdiItems.reduce((s, i) => s + i.Taxes[0].Total, 0) * 100) / 100;
-  const rootTotal   = Math.round((rootSubtotal + rootTaxes) * 100) / 100;
+  const rootTaxes    = Math.round(cfdiItems.reduce((s, i) => s + (i.Taxes?.[0]?.Total || 0), 0) * 100) / 100;
+  const rootDiscount = Math.round(parseFloat(discount || 0) * 100) / 100;
+  const rootTotal    = Math.round((rootSubtotal + rootTaxes - rootDiscount) * 100) / 100;
 
   const now = new Date();
   // SAT requires date in Mexico City local time (America/Mexico_City)
@@ -102,8 +125,8 @@ function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = 
 
   const payload = {
     NameId: '1',
-    CfdiType: 'I',
-    Serie: serie,
+    CfdiType: cfdiType,
+    Serie: cfdiType === 'E' ? 'NC' : serie,
     Folio: String(folio),
     Date: mxDate,
     PaymentForm: paymentForm,
@@ -111,7 +134,9 @@ function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = 
     Currency: currency,
     ExpeditionPlace: expeditionPlace || issuer.taxZipCode || '89000',
     Subtotal: rootSubtotal,
+    ...(rootDiscount > 0 && { Discount: rootDiscount }),
     Total: rootTotal,
+    ...(orderRef && { OrderNumber: orderRef }),
     Issuer: {
       FiscalRegime: issuer.fiscalRegime,
       Rfc: issuer.rfc.toUpperCase(),
@@ -120,7 +145,10 @@ function buildCfdi({ issuer, receiver, items, folio, serie = 'F', paymentForm = 
     Receiver: isPublic
       ? { Rfc: 'XAXX010101000', Name: 'PUBLICO EN GENERAL', FiscalRegime: '616', TaxZipCode: issuer.taxZipCode || '89000', CfdiUse: 'S01' }
       : { Rfc: receiver.rfc.toUpperCase(), Name: receiver.name.toUpperCase(), FiscalRegime: receiver.fiscalRegime, TaxZipCode: receiver.taxZipCode, CfdiUse: receiver.cfdiUse || 'G03' },
-    Items: cfdiItems
+    Items: cfdiItems,
+    ...(cfdiType === 'E' && relatedUuid && {
+      Relations: { Type: '01', Cfdis: [{ Uuid: relatedUuid }] }
+    })
   };
 
   // CFDI 4.0: InformacionGlobal es obligatorio cuando el receptor es Público en General
